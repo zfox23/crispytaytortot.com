@@ -3,7 +3,7 @@ import { Layout } from "../components/Layout";
 import SEOHeader from "../components/SEOHeader";
 import { StaticImage } from 'gatsby-plugin-image';
 import { Button, ButtonTypes } from '../components/Button';
-
+import { ShoppingBagIcon } from "@heroicons/react/24/solid";
 
 const IndexPage = ({ data }) => {
     return (
@@ -15,8 +15,8 @@ const IndexPage = ({ data }) => {
             </div>
             <div className='bg-neutral-900/90 w-[calc(100%-16px)] max-w-xl flex flex-col items-center z-20 my-16 mx-2 rounded-md pt-4 pb-12 px-4'>
                 <div className='mb-8'>
-                    <div className='rounded-full cursor-pointer p-1 border-2 border-solid bg-neutral-900/90 group border-indigo-800 w-24 h-24 relative mx-auto overflow-clip'>
-                        <StaticImage placeholder='blurred' className='group-hover:animate-spin w-full h-full' loading='eager' src="../data/images/crispytaytortot-70x70.png" alt="CrispyTaytortot's avatar is a cartoon tater tot with eyes and a happy expression." />
+                    <div className='rounded-full cursor-pointer p-1 border-2 border-solid bg-neutral-900/90 group border-indigo-800 w-24 h-24 relative mx-auto overflow-clip flex items-center justify-center'>
+                        <StaticImage height={72} quality={90} placeholder='blurred' className='group-hover:animate-spin' loading='eager' src="../data/images/Totmoji.png" alt="CrispyTaytortot's avatar is a cartoon tater tot with eyes and a happy expression." />
                     </div>
                     <p className='font-semibold text-neutral-50 text-3xl'>CrispyTaytortot</p>
                 </div>
@@ -34,16 +34,25 @@ const IndexPage = ({ data }) => {
                         alt="Twitch" />} />
 
                 <Button
-                    className='mb-16'
+                    className='mb-4'
                     buttonText="Discord"
                     type={ButtonTypes.ALink}
-                    onClick="/discord"
+                    onClick="https://crispytaytortot.com/discord"
                     filled={true}
                     buttonIconLeft={<StaticImage
                         className='w-[24px] h-[18px]'
                         placeholder='none'
                         src="../data/images/icons/discord.svg"
                         alt="Discord" />} />
+
+                <Button
+                    className='mb-16'
+                    buttonText="Merch"
+                    type={ButtonTypes.ALink}
+                    onClick="https://crispytaytortot.store/"
+                    filled={true}
+                    buttonIconLeft={<ShoppingBagIcon
+                        className='h-6 w-6' />} />
 
                 <Button
                     className='mb-4 bg-indigo-500 hover:bg-indigo-600 border-indigo-500 hover:border-indigo-700'
@@ -85,11 +94,11 @@ const IndexPage = ({ data }) => {
                     className='mb-4 bg-indigo-500 hover:bg-indigo-600 border-indigo-500 hover:border-indigo-700'
                     buttonText="Email"
                     type={ButtonTypes.ALink}
-                    onClick="mailto:tot@crispytaytortot.com"
+                    onClick="mailto:hello@crispytaytortot.com"
                     linkTarget='_blank'
                     filled={true}
                     buttonIconLeft={<StaticImage
-                        className='w-[20px] h-[16px]'
+                        className='w-[21px] h-[16px]'
                         src="../data/images/icons/email.svg"
                         placeholder='none'
                         alt="Email CrispyTaytortot" />} />
