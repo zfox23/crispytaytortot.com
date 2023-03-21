@@ -109,7 +109,7 @@ const refreshTwitchUserAuthInfo = async (refresh_token: string) => {
     }
 }
 
-app.get("/twitch/connect", async (req, res) => {
+app.get("/api/v1/twitch/connect", async (req, res) => {
     const csrfToken = generateToken(res, req);
     const forceVerify = true;
     return res.redirect(`https://id.twitch.tv/oauth2/authorize?response_type=code&${forceVerify ? "force_verify=true&" : ""}client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=${process.env.TWITCH_REDIRECT_URI}&scope=channel%3Aread%3Asubscriptions+moderator%3Aread%3Afollowers&state=${csrfToken}`)
@@ -123,7 +123,7 @@ interface TwitchUserAuthInfo {
 }
 let cachedTwitchUserAuthInfo: TwitchUserAuthInfo;
 
-app.get("/twitch/auth", async (req, res) => {
+app.get("/api/v1/twitch/auth", async (req, res) => {
     if (!validateRequest(req)) {
         return res.status(403).send(`Couldn't validate your request.`);
     }
