@@ -1,11 +1,36 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Layout } from "../components/Layout";
 import SEOHeader from "../components/SEOHeader";
 import { StaticImage } from 'gatsby-plugin-image';
 import { Button, ButtonTypes } from '../components/Button';
 import { ShoppingBagIcon } from "@heroicons/react/24/solid";
+import { LoadingSpinner } from '../components/LoadingSpinner';
+import { Transition } from '@headlessui/react'
 
 const IndexPage = ({ data }) => {
+    const [numSubscribers, setNumSubscribers] = useState();
+    const [numFollowers, setNumFollowers] = useState();
+    const [viewerCount, setViewerCount] = useState(-1);
+    const [gameName, setGameName] = useState();
+    const [showingTwitchStats, setShowingTwitchStats] = useState(false);
+
+    useEffect(() => {
+        fetch('/api/v1/twitch-info', {
+            method: 'GET'
+        })
+            .then(response => response.json())
+            .then(data => {
+                setNumSubscribers(data.subCount);
+                setNumFollowers(data.followerCount);
+                setViewerCount(data.viewerCount);
+                setGameName(data.gameName);
+                setShowingTwitchStats(true);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    }, [])
+
     return (
         <Layout>
             <SEOHeader title="Home" />
@@ -21,17 +46,35 @@ const IndexPage = ({ data }) => {
                     <p className='font-semibold text-neutral-50 text-3xl'>CrispyTaytortot</p>
                 </div>
 
-                <Button
-                    className='mb-4'
-                    buttonText="Twitch"
-                    type={ButtonTypes.ALink}
-                    onClick="https://twitch.tv/crispytaytortot"
-                    filled={true}
-                    buttonIconLeft={<StaticImage
-                        className='w-[20px] h-[21px]'
-                        src="../data/images/icons/twitch.svg"
-                        placeholder='none'
-                        alt="Twitch" />} />
+                <div className='w-full max-w-md mx-auto transition-all duration-300 flex flex-col items-center mb-4 gap-1 bg-indigo-700 rounded-md px-4 py-4'>
+                    <Button
+                        className='mb-1'
+                        buttonText="Twitch"
+                        type={ButtonTypes.ALink}
+                        onClick="https://twitch.tv/crispytaytortot"
+                        filled={true}
+                        buttonIconLeft={<StaticImage
+                            className='w-[20px] h-[21px]'
+                            src="../data/images/icons/twitch.svg"
+                            placeholder='none'
+                            alt="Twitch" />} />
+
+                    <Transition
+                        show={showingTwitchStats}
+                        className='flex flex-row flex-wrap justify-between text-xl w-full text-neutral-50'
+                        enter="ease-out duration-300"
+                        enterFrom="opacity-0 scale-95"
+                        enterTo="opacity-100 scale-100"
+                        leave="linear duration-0"
+                        leaveFrom="opacity-100 scale-100"
+                        leaveTo="opacity-0 scale-95">
+                        {viewerCount > 0 ?
+                        <a className='text-center w-full mb-2 text-base' href="https://twitch.tv/crispytaytortot" target="_blank"><span  className='underline'>Playing {gameName} for {viewerCount} viewers</span></a>
+                        : null}
+                        <p className='leading-6'>{numFollowers} Followers</p>
+                        <p className='leading-6'>{numSubscribers} Subscribers</p>
+                    </Transition>
+                </div>
 
                 <Button
                     className='mb-4'

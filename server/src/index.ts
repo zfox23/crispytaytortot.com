@@ -1,21 +1,21 @@
 import fetch from 'cross-fetch';
+const fs = require('fs');
 import express, { Response } from 'express';
 import { doubleCsrf } from "csrf-csrf";
 import cookieParser from "cookie-parser";
 import cors from 'cors';
 import dotenv from "dotenv";
+import path from 'path';
 dotenv.config();
 
 const app = express();
 
 const {
-    invalidCsrfTokenError, // This is just for convenience if you plan on making your own middleware.
-    generateToken, // Use this in your routes to provide a CSRF hash cookie and token.
-    validateRequest, // Also a convenience if you plan on making your own middleware.
-    doubleCsrfProtection, // This is the default CSRF protection middleware.
+    generateToken,
+    validateRequest,
 } = doubleCsrf({
-    getSecret: () => "this is a test", // NEVER DO THIS
-    cookieName: "x-csrf-test", // Prefer "__Host-" prefixed names if possible
+    getSecret: () => process.env.CSRF_SECRET!,
+    cookieName: "x-csrf-token",
     cookieOptions: { sameSite: false, secure: false, signed: true }, // not ideal for production, development only
     getTokenFromRequest: (req) => req.query.state?.toString(),
 });
@@ -111,20 +111,21 @@ const refreshTwitchUserAuthInfo = async (refresh_token: string) => {
 
 app.get("/twitch/connect", async (req, res) => {
     const csrfToken = generateToken(res, req);
-    return res.redirect(`https://id.twitch.tv/oauth2/authorize?force_verify=true&response_type=code&client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=${process.env.TWITCH_REDIRECT_URI}&scope=moderator%3Aread%3Afollowers&state=${csrfToken}`)
+    const forceVerify = true;
+    return res.redirect(`https://id.twitch.tv/oauth2/authorize?response_type=code&${forceVerify ? "force_verify=true&" : ""}client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=${process.env.TWITCH_REDIRECT_URI}&scope=channel%3Aread%3Asubscriptions+moderator%3Aread%3Afollowers&state=${csrfToken}`)
 })
 
 interface TwitchUserAuthInfo {
-    access_token: string;
-    refresh_token: string;
+    access_token: string | undefined;
+    refresh_token: string | undefined;
     scope: string[];
-    token_type: string;
+    token_type: string | undefined;
 }
 let cachedTwitchUserAuthInfo: TwitchUserAuthInfo;
 
 app.get("/twitch/auth", async (req, res) => {
     if (!validateRequest(req)) {
-        return res.sendStatus(403);
+        return res.status(403).send(`Couldn't validate your request.`);
     }
 
     if (req.query.error) {
@@ -137,26 +138,26 @@ app.get("/twitch/auth", async (req, res) => {
 
     const twitchUserAuthInfo = await getTwitchUserAuthInfo(req.query.code!.toString());
     const { id, login } = await getUserIDFromAccessToken(twitchUserAuthInfo.access_token);
-    console.log(id)
 
     if (id === process.env.TWITCH_BROADCASTER_ID) {
         cachedTwitchUserAuthInfo = JSON.parse(JSON.stringify(twitchUserAuthInfo));
+        const userAccessTokenJSONPath = path.join(__dirname, "userAccessToken.json");
+        fs.writeFileSync(userAccessTokenJSONPath, JSON.stringify(twitchUserAuthInfo));
         return res.send(`Welcome, ${login}. You have successfully authorized crispytaytortot.com, and it will start showing data now.`);
     } else if (id === "686688") {
+        const userAccessTokenJSONPath = path.join(__dirname, "userAccessToken.json");
         cachedTwitchUserAuthInfo = JSON.parse(JSON.stringify(twitchUserAuthInfo));
+        fs.writeFileSync(userAccessTokenJSONPath, JSON.stringify(twitchUserAuthInfo));
         return res.send(`hi zach 😁`);
     } else {
         return res.status(401).send(`You aren't allowed to authorize this application. Your data has been discarded.`);
     }
 })
 
-const getTwitchUserAccessTokenFromDisk = () => {
-    return {
-        "access_token": "fj",
-        "refresh_token": "fj",
-        "scope": ["fj"],
-        "token_type": "fj"
-    };
+const getTwitchUserAccessTokenFromDisk = async () => {
+    const userAccessTokenJSONPath = path.join(__dirname, "userAccessToken.json");
+    const userAccessTokenJSON = JSON.parse(await fs.readFileSync(userAccessTokenJSONPath));
+    return userAccessTokenJSON;
 }
 
 const getUserIDFromAccessToken = async (access_token: string) => {
@@ -195,6 +196,83 @@ const getUserIDFromAccessToken = async (access_token: string) => {
     return { ok: true, id: twitchUsersInfoJSON.data[0].id, login: twitchUsersInfoJSON.data[0].login };
 }
 
+// https://discuss.dev.twitch.tv/t/get-stream-total-live-views/28891
+// Total stream views is deprecated.
+const getChannelSubs = async () => {
+    const myHeaders = new Headers();
+    myHeaders.set('Authorization', `Bearer ${cachedTwitchUserAuthInfo.access_token}`);
+    myHeaders.set('Client-Id', process.env.TWITCH_CLIENT_ID!);
+    let error;
+
+    let twitchSubsInfo;
+    try {
+        twitchSubsInfo = await fetch(`https://api.twitch.tv/helix/subscriptions?broadcaster_id=${process.env.TWITCH_BROADCASTER_ID}&first=1`,
+            {
+                method: 'GET',
+                headers: myHeaders
+            });
+    } catch (e) {
+        error = `${Date.now()}: Error when fetching /subscriptions:\n${JSON.stringify(e)}`;
+        console.error(error);
+        return { ok: false, error };
+    }
+
+    if (twitchSubsInfo.status !== 200) {
+        error = `${Date.now()}: getChannelSubs: The Twitch API returned:\n${JSON.stringify(await twitchSubsInfo.json())}`;
+        console.error(error);
+        return { ok: false, error, totalSubs: -1 };
+    }
+
+    let twitchSubsInfoJSON;
+    try {
+        twitchSubsInfoJSON = await twitchSubsInfo.json();
+    } catch (e) {
+        error = `${Date.now()}: Error when transforming getTotalChannelViews response to JSON:\n${JSON.stringify(e)}`;
+        console.error(error);
+        return { ok: false, error };
+    }
+
+    return { ok: true, totalSubs: twitchSubsInfoJSON.total };
+}
+
+const getStreams = async () => {
+    const myHeaders = new Headers();
+    myHeaders.set('Authorization', `Bearer ${cachedTwitchUserAuthInfo.access_token}`);
+    myHeaders.set('Client-Id', process.env.TWITCH_CLIENT_ID!);
+    let error;
+
+    let streamsInfo;
+    try {
+        streamsInfo = await fetch(`https://api.twitch.tv/helix/streams?user_id=${process.env.TWITCH_BROADCASTER_ID}`,
+        // streamsInfo = await fetch(`https://api.twitch.tv/helix/streams`,
+            {
+                method: 'GET',
+                headers: myHeaders
+            });
+    } catch (e) {
+        error = `${Date.now()}: Error in getStreams():\n${JSON.stringify(e)}`;
+        console.error(error);
+        return { ok: false, error };
+    }
+
+    if (streamsInfo.status !== 200) {
+        error = `${Date.now()}: getStreams: The Twitch API returned:\n${JSON.stringify(await streamsInfo.json())}`;
+        console.error(error);
+        return { ok: false, error, totalSubs: -1 };
+    }
+
+    let streamsInfoJSON;
+    try {
+        streamsInfoJSON = await streamsInfo.json();
+    } catch (e) {
+        error = `${Date.now()}: Error when transforming getStreams response to JSON:\n${JSON.stringify(e)}`;
+        console.error(error);
+        return { ok: false, error };
+    }
+
+    return { ok: true, streamsInfoJSON };
+}
+
 const getTwitchFollowerInfo = async () => {
     const myHeaders = new Headers();
     myHeaders.set('Authorization', `Bearer ${cachedTwitchUserAuthInfo.access_token}`);
@@ -215,7 +293,7 @@ const getTwitchFollowerInfo = async () => {
     }
 
     if (twitchFollowerInfo.status !== 200) {
-        error = `${Date.now()}: When getting Twitch follower info, the Twitch API didn't return a 200!`;
+        error = `${Date.now()}: When getting Twitch follower info, the Twitch API returned:\n${JSON.stringify(await twitchFollowerInfo.json())}`;
         console.error(error);
         return { ok: false, error };
     }
@@ -250,8 +328,14 @@ const maybeRefreshTwitchUserAccessToken = async () => {
         return { ok: false, error };
     }
 
+    if (!cachedTwitchUserAuthInfo.refresh_token) {
+        error = `${Date.now()}: When getting Twitch user info, there was no refresh token!`;
+        console.error(error);
+        return { ok: false, error };
+    }
+
     if (twitchUsers.status !== 200) {
-        cachedTwitchUserAuthInfo = await refreshTwitchUserAuthInfo(cachedTwitchUserAuthInfo.refresh_token);
+        cachedTwitchUserAuthInfo = await refreshTwitchUserAuthInfo(cachedTwitchUserAuthInfo.refresh_token!);
         if (!cachedTwitchUserAuthInfo) {
             error = `${Date.now()}: When getting Twitch user info, the Twitch API returned:\n${JSON.stringify(await twitchUsers.json())}`;
             console.error(error);
@@ -264,7 +348,7 @@ const maybeRefreshTwitchUserAccessToken = async () => {
 
 app.get("/api/v1/twitch-info", async (req, res: Response) => {
     if (!cachedTwitchUserAuthInfo) {
-        cachedTwitchUserAuthInfo = getTwitchUserAccessTokenFromDisk();
+        cachedTwitchUserAuthInfo = await getTwitchUserAccessTokenFromDisk();
     }
     if (!cachedTwitchUserAuthInfo) {
         return res.sendStatus(500);
@@ -280,8 +364,22 @@ app.get("/api/v1/twitch-info", async (req, res: Response) => {
         return res.status(500).send(twitchFollowerInfo.error);
     }
 
+    // We don't 500 if there's an error here; we display "-1" as the number of subs.
+    let channelSubs = await getChannelSubs();
+
+    let streamsInfo = await getStreams();
+    let viewerCount = -1;
+    let gameName = "";
+    if (streamsInfo.ok && streamsInfo.streamsInfoJSON.data.length > 0) {
+        viewerCount = streamsInfo.streamsInfoJSON.data[0].viewer_count;
+        gameName = streamsInfo.streamsInfoJSON.data[0].game_name
+    }
+
     let retval = {
-        "followerCount": twitchFollowerInfo["total"]
+        "followerCount": twitchFollowerInfo["total"],
+        "subCount": channelSubs["totalSubs"],
+        "viewerCount": viewerCount,
+        "gameName": gameName
     }
 
     return res.json(retval);
