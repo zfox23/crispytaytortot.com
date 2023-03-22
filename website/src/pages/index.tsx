@@ -8,6 +8,7 @@ import { Transition } from '@headlessui/react'
 import DiscordIcon from '../components/icons/DiscordIcon';
 import TwitchIcon from '../components/icons/TwitchIcon';
 import Divider from '../components/Divider';
+import { DivOnScreen } from '../components/DivOnScreen';
 
 const IndexPage = ({ data }) => {
     const [numSubscribers, setNumSubscribers] = useState<number>(-1);
@@ -59,7 +60,7 @@ const IndexPage = ({ data }) => {
 
                 <Divider className='mb-5' />
 
-                <div className='w-full max-w-md mx-auto transition-all duration-300 flex flex-col items-center mb-4 gap-1 bg-indigo-700 rounded-md px-4 py-4'>
+                <DivOnScreen className='w-full max-w-md mx-auto transition-all duration-300 flex flex-col items-center mb-4 gap-1 bg-indigo-700 rounded-md px-4 py-4'>
                     <Button
                         className='mb-1 bg-neutral-50 text-indigo-700 hover:bg-neutral-100 hover:text-indigo-800 shadow-md active:shadow-sm shadow-neutral-800/50'
                         buttonText="Twitch"
@@ -71,21 +72,21 @@ const IndexPage = ({ data }) => {
 
                     <Transition
                         show={showingTwitchStats}
-                        className='flex flex-row flex-wrap justify-around text-xl w-full text-neutral-50'
+                        className='flex flex-row flex-wrap justify-center gap-8 text-xl w-full text-neutral-50'
                         enter="ease-out duration-300"
-                        enterFrom="opacity-0 scale-95"
-                        enterTo="opacity-100 scale-100"
+                        enterFrom="opacity-0 scale-95 h-0"
+                        enterTo="opacity-100 scale-100 h-6"
                         leave="linear duration-0"
-                        leaveFrom="opacity-100 scale-100"
-                        leaveTo="opacity-0 scale-95">
+                        leaveFrom="opacity-100 scale-100 h-6"
+                        leaveTo="opacity-0 scale-95 h-0">
                         {viewerCount > 0 ?
                             <a className='text-center w-full mb-2 text-base' href="https://twitch.tv/crispytaytortot" target="_blank"><span className='underline'>Playing {gameName} for {viewerCount.toLocaleString()} viewers</span></a>
                             : null}
                         <p className='leading-6'>{numFollowers.toLocaleString()} Followers</p>
-                        {numSubscribers > 0 ? <p className='leading-6'>{numSubscribers.toLocaleString()} Subscribers</p> : null}
+                        {numSubscribers > -2 ? <p className='leading-6'>{numSubscribers.toLocaleString()} Subscribers</p> : null}
 
                     </Transition>
-                </div>
+                </DivOnScreen>
 
                 <Button
                     className='mb-4'
