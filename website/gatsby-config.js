@@ -20,21 +20,21 @@ module.exports = {
           "path": "./src/data/"
         }
       },
-    //   {
-    //     resolve: "gatsby-plugin-manifest",
-    //     options: {
-    //       name: `CrispyTaytortot`,
-    //       short_name: `CrispyTaytortot`,
-    //       start_url: `/`,
-    //       background_color: `#f1ead1`,
-    //       theme_color: `#ff9012`,
-    //       display: `standalone`,
-    //       icon: "src/images/icon-on-white.svg",
-    //       icon_options: {
-    //         purpose: `any maskable`,
-    //       },
-    //     },
-    //   },
+      {
+        resolve: "gatsby-plugin-manifest",
+        options: {
+          name: `CrispyTaytortot`,
+          short_name: `CrispyTaytortot`,
+          start_url: `/`,
+          background_color: `#3730a3`,
+          theme_color: `#3730a3`,
+          display: `standalone`,
+          icon: "src/data/images/crispytaytortot-70x70.png",
+          icon_options: {
+            purpose: `any maskable`,
+          },
+        },
+      },
       {
         resolve: 'gatsby-plugin-robots-txt',
         options: {

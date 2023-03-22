@@ -219,7 +219,6 @@ const getChannelSubs = async () => {
 
     if (twitchSubsInfo.status !== 200) {
         error = `${Date.now()}: getChannelSubs: The Twitch API returned:\n${JSON.stringify(await twitchSubsInfo.json())}`;
-        console.error(error);
         return { ok: false, error, totalSubs: -1 };
     }
 
