@@ -60,7 +60,7 @@ const IndexPage = ({ data }) => {
 
                 <Divider className='mb-5' />
 
-                <DivOnScreen className='w-full max-w-md mx-auto transition-all duration-300 flex flex-col items-center mb-4 gap-1 bg-indigo-700 rounded-md px-4 py-4'>
+                <DivOnScreen className='w-full max-w-md mx-auto flex flex-col items-center mb-4 gap-1 bg-indigo-700 rounded-md px-4 py-4'>
                     <Button
                         className='mb-1 bg-neutral-50 text-indigo-700 hover:bg-neutral-100 hover:text-indigo-800 shadow-md active:shadow-sm shadow-neutral-800/50'
                         buttonText="Twitch"
