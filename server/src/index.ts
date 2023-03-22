@@ -243,7 +243,7 @@ const getStreams = async () => {
     let streamsInfo;
     try {
         streamsInfo = await fetch(`https://api.twitch.tv/helix/streams?user_id=${process.env.TWITCH_BROADCASTER_ID}`,
-        // streamsInfo = await fetch(`https://api.twitch.tv/helix/streams`,
+            // streamsInfo = await fetch(`https://api.twitch.tv/helix/streams`,
             {
                 method: 'GET',
                 headers: myHeaders
@@ -345,17 +345,27 @@ const maybeRefreshTwitchUserAccessToken = async () => {
     return { ok: true };
 }
 
-app.get("/api/v1/twitch-info", async (req, res: Response) => {
+const refreshTwitchUserAccessToken = async () => {
     if (!cachedTwitchUserAuthInfo) {
         cachedTwitchUserAuthInfo = await getTwitchUserAccessTokenFromDisk();
     }
     if (!cachedTwitchUserAuthInfo) {
-        return res.sendStatus(500);
+        return false;
     }
 
     const refreshStatus = await maybeRefreshTwitchUserAccessToken();
     if (!refreshStatus.ok) {
-        return res.status(500).send(refreshStatus.error);
+        console.error(refreshStatus.error);
+        return false;
+    }
+
+    return true;
+}
+
+app.get("/api/v1/twitch-info", async (req, res: Response) => {
+    await refreshTwitchUserAccessToken();
+    if (!cachedTwitchUserAuthInfo) {
+        return res.sendStatus(500);
     }
 
     let twitchFollowerInfo = await getTwitchFollowerInfo();
@@ -383,5 +393,62 @@ app.get("/api/v1/twitch-info", async (req, res: Response) => {
 
     return res.json(retval);
 })
+
+app.get("/api/v1/twitch/avg-viewers-30-days", async (req, res: Response) => {
+    let result = getLast30Days.all();
+    if (result) {
+        return res.json(result);
+    } else {
+        return res.status(500).json({ok: false, message: "Couldn't get viewer data for the last 30 days."});
+    }
+})
+
+const SQLite = require("better-sqlite3");
+const viewersSQL = new SQLite(path.join(__dirname, "..", "db", "viewers.sqlite"));
+let getLast30Days: any;
+let setViewershipData: any;
+const prepareSQLite = () => {
+    // Check if the table "viewers" exists.
+    const viewersTable = viewersSQL.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name = 'viewers';").get();
+    if (!viewersTable['count(*)']) {
+        // If the table isn't there, create it and setup the database correctly.
+        viewersSQL.prepare("CREATE TABLE viewers (id INTEGER PRIMARY KEY, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, viewerCount INTEGER, channelIsLive INTEGER);").run();
+        // Ensure that the "id" row is always unique and indexed.
+        viewersSQL.prepare("CREATE UNIQUE INDEX idx_viewers_id ON viewers (id);").run();
+        viewersSQL.pragma("synchronous = 1");
+        viewersSQL.pragma("journal_mode = wal");
+    }
+
+    getLast30Days = viewersSQL.prepare("SELECT * FROM viewers WHERE timestamp > DATETIME('now', '-30 day')");
+    setViewershipData = viewersSQL.prepare("INSERT OR REPLACE INTO viewers (viewerCount, channelIsLive) VALUES (@viewerCount, @channelIsLive);");
+}
+
+console.log("Preparing SQLite tables and statements...");
+prepareSQLite();
+console.log("Prepared!");
+
+const getViewerCountCallback = async () => {
+    await refreshTwitchUserAccessToken();
+
+    let streamsInfo = await getStreams();
+    let viewerCount = 0;
+    let channelIsLive = 0;
+    if (streamsInfo.ok && streamsInfo.streamsInfoJSON.data.length > 0) {
+        viewerCount = streamsInfo.streamsInfoJSON.data[0].viewer_count;
+        channelIsLive = 1;
+    } else if (!streamsInfo.ok) {
+        console.warn(JSON.stringify(streamsInfo));
+    }
+
+    let statement = {
+        viewerCount: viewerCount,
+        channelIsLive: channelIsLive
+    };
+    setViewershipData.run(statement);
+}
+setInterval(async () => {
+    getViewerCountCallback();
+}, parseInt(process.env.TWITCH_GET_VIEWER_COUNT_INTERVAL_MS || '900000'));
+getViewerCountCallback();
 
 app.listen(4243, () => console.log(`${Date.now()}: crispytaytortot.com NodeJS server listening on port 4243!`));

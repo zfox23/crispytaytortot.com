@@ -10,12 +10,38 @@ import TwitchIcon from '../components/icons/TwitchIcon';
 import Divider from '../components/Divider';
 import { DivOnScreen } from '../components/DivOnScreen';
 
+import {
+    Chart as ChartJS,
+    TimeScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend
+} from "chart.js";
+import { Line } from "react-chartjs-2";
+import 'chartjs-adapter-luxon';
+ChartJS.register(
+    TimeScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend
+);
+
 const IndexPage = ({ data }) => {
     const [numSubscribers, setNumSubscribers] = useState<number>(-1);
     const [numFollowers, setNumFollowers] = useState<number>(-1);
     const [viewerCount, setViewerCount] = useState<number>(-1);
     const [gameName, setGameName] = useState<string>();
     const [showingTwitchStats, setShowingTwitchStats] = useState(false);
+
+    const [twitchViewership, setTwitchViewership] = useState<any>();
+    const [twitchViewershipAverage, setTwitchViewershipAverage] = useState(-1);
+    const [showingTwitchViewership, setShowingTwitchViewership] = useState(false);
 
     useEffect(() => {
         fetch('/api/v1/twitch-info', {
@@ -28,6 +54,68 @@ const IndexPage = ({ data }) => {
                 setViewerCount(parseInt(data.viewerCount));
                 setGameName(data.gameName);
                 setShowingTwitchStats(true);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    }, [])
+
+    useEffect(() => {
+        fetch('/api/v1/twitch/avg-viewers-30-days', {
+            method: 'GET'
+        })
+            .then(response => response.json())
+            .then(data => {
+                const viewershipValues = data.map(a => {
+                    return { x: new Date(a.timestamp), y: a.viewerCount }
+                });
+                const liveValues = data.map(a => {
+                    // We map "live" to "current viewerCount" so the data overlaps.
+                    return { x: new Date(a.timestamp), y: a.channelIsLive === 1 ? a.viewerCount : 0, live: a.channelIsLive === 1 ? true : false }
+                });
+                let borderColor: string[] = [];
+                let pointBackgroundColor: string[] = [];
+                let pointRadius: number[] = []
+                let viewership = {
+                    datasets: [
+                        {
+                            data: liveValues,
+                            borderColor,
+                            pointBackgroundColor,
+                            pointRadius,
+                            label: "Live",
+                        },
+                        {
+                            data: viewershipValues,
+                            borderColor,
+                            pointBackgroundColor,
+                            label: "# Viewers"
+                        }
+                    ]
+                }
+                for (let i = 0; i < viewership.datasets[0].data.length; i++) {
+                    if (viewership.datasets[0].data[i].live) {
+                        borderColor.push("#ff0000");
+                        pointBackgroundColor.push("#ff0000");
+                        pointRadius.push(4);
+                    } else {
+                        borderColor.push("#e8901a");
+                        pointBackgroundColor.push("#e8901a");
+                        pointRadius.push(2);
+                    }
+                }
+                setTwitchViewership(viewership);
+
+                let average = 0;
+                for (let i = 0; i < viewershipValues.length; i++) {
+                    if (viewershipValues[i].y > 0) {
+
+                    }
+                }
+
+                console.log(viewershipValues[viewershipValues.length - 1].x - viewershipValues[0].x)
+                setTwitchViewershipAverage(0);
+                setShowingTwitchViewership(true);
             })
             .catch((error) => {
                 console.error('Error:', error);
@@ -83,8 +171,88 @@ const IndexPage = ({ data }) => {
                             <a className='text-center w-full mb-2 text-base' href="https://twitch.tv/crispytaytortot" target="_blank"><span className='underline'>Playing {gameName} for {viewerCount.toLocaleString()} viewers</span></a>
                             : null}
                         <p className='leading-6'>{numFollowers.toLocaleString()} Followers</p>
-                        {numSubscribers > -2 ? <p className='leading-6'>{numSubscribers.toLocaleString()} Subscribers</p> : null}
+                        {numSubscribers > 0 ? <p className='leading-6'>{numSubscribers.toLocaleString()} Subscribers</p> : null}
+                    </Transition>
 
+                    <Transition
+                        show={showingTwitchViewership}
+                        className='w-full text-neutral-50'
+                        enter="ease-out duration-300"
+                        enterFrom="opacity-0 scale-95"
+                        enterTo="opacity-100 scale-100"
+                        leave="linear duration-0"
+                        leaveFrom="opacity-100 scale-100"
+                        leaveTo="opacity-0 scale-95">
+                            <Divider className='mt-4 border-neutral-200/25' />
+                        <div className=''>
+                            <Line className='w-full h-64' options={{
+                                maintainAspectRatio: false,
+                                responsive: true,
+                                plugins: {
+                                    legend: {
+                                        display: false,
+                                    },
+                                    title: {
+                                        display: true,
+                                        position: "top",
+                                        text: "Viewers",
+                                        color: "#f5f5f5"
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: (context: any) => {
+                                                if (context.dataset.label === "Live" && context.raw.live === false) {
+                                                    return "Not Live"
+                                                } else if (context.dataset.label === "Live" && context.raw.live === true) {
+                                                    return "Live"
+                                                } else {
+                                                    return `# Viewers: ${context.raw.y}`
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    x: {
+                                        grid: {
+                                            display: false,
+                                        },
+                                        type: "time",
+                                        time: {
+                                            unit: "minute"
+                                        },
+                                        ticks: {
+                                            color: "#f5f5f5",
+                                            maxTicksLimit: 5,
+                                        },
+                                        border: {
+                                            color: "#f5f5f588",
+                                        },
+                                        title: {
+                                            color: "#f5f5f5"
+                                        }
+                                    },
+                                    y: {
+                                        grid: {
+                                            display: false,
+                                        },
+                                        beginAtZero: true,
+                                        grace: "10%",
+                                        ticks: {
+                                            precision: 0,
+                                            color: "#f5f5f5",
+                                        },
+                                        border: {
+                                            color: "#f5f5f588",
+                                        },
+                                        title: {
+                                            color: "#f5f5f5"
+                                        }
+                                    }
+                                }
+                            }} data={twitchViewership} />
+                        </div>
+                        <p className='text-center'>30-Day Average Viewers: {twitchViewershipAverage.toLocaleString()}</p>
                     </Transition>
                 </DivOnScreen>
 
