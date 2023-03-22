@@ -40,7 +40,7 @@ const IndexPage = ({ data }) => {
     const [showingTwitchStats, setShowingTwitchStats] = useState(false);
 
     const [twitchViewership, setTwitchViewership] = useState<any>();
-    const [twitchViewershipAverage, setTwitchViewershipAverage] = useState(-1);
+    const [twitchViewershipAverage, setTwitchViewershipAverage] = useState("-1");
     const [showingTwitchViewership, setShowingTwitchViewership] = useState(false);
 
     useEffect(() => {
@@ -71,7 +71,7 @@ const IndexPage = ({ data }) => {
                 });
                 const liveValues = data.map(a => {
                     // We map "live" to "current viewerCount" so the data overlaps.
-                    return { x: new Date(a.timestamp), y: a.channelIsLive === 1 ? a.viewerCount : 0, live: a.channelIsLive === 1 ? true : false }
+                    return { x: new Date(a.timestamp), y: a.viewerCount, live: a.channelIsLive === 1 ? true : false }
                 });
                 let borderColor: string[] = [];
                 let pointBackgroundColor: string[] = [];
@@ -106,15 +106,35 @@ const IndexPage = ({ data }) => {
                 }
                 setTwitchViewership(viewership);
 
-                let average = 0;
-                for (let i = 0; i < viewershipValues.length; i++) {
-                    if (viewershipValues[i].y > 0) {
+                // UHHHHHHHHH this whole section is probably wrong
+                // it's 1am
+                // i gotta go to sleep
+                let windowStartIdx = -1;
+                let runningTotal = 0;
+                let averages: number[] = [];
+                for (let i = 0; i < viewershipValues.length - 1; i++) {
+                    if (liveValues[i].live && windowStartIdx === -1) {
+                        windowStartIdx = i;
+                    }
 
+                    runningTotal += viewershipValues[i].y;
+
+                    if (!liveValues[i + 1].live || i === viewershipValues.length - 2) {
+                        if (windowStartIdx === -1) {
+                            windowStartIdx = i - 1;
+                        } else if (windowStartIdx === i) {
+                            windowStartIdx = i - 1;
+                        }
+                        const current = runningTotal / (i - windowStartIdx);
+                        console.log(current, runningTotal, i, windowStartIdx)
+                        averages.push(current);
+                        windowStartIdx = -1;
+                        runningTotal = 0;
                     }
                 }
+                const average = averages.reduce((a, b) => a + b) / averages.length;
 
-                console.log(viewershipValues[viewershipValues.length - 1].x - viewershipValues[0].x)
-                setTwitchViewershipAverage(0);
+                setTwitchViewershipAverage(average.toFixed(1));
                 setShowingTwitchViewership(true);
             })
             .catch((error) => {
@@ -252,7 +272,7 @@ const IndexPage = ({ data }) => {
                                 }
                             }} data={twitchViewership} />
                         </div>
-                        <p className='text-center'>30-Day Average Viewers: {twitchViewershipAverage.toLocaleString()}</p>
+                        <p className='text-center'>Average Viewers while Live (Past 30 Days): {twitchViewershipAverage}</p>
                     </Transition>
                 </DivOnScreen>
 
