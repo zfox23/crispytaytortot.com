@@ -61,7 +61,7 @@ const IndexPage = ({ data }) => {
 
                 <div className='w-full max-w-md mx-auto transition-all duration-300 flex flex-col items-center mb-4 gap-1 bg-indigo-700 rounded-md px-4 py-4'>
                     <Button
-                        className='mb-1 bg-neutral-50 text-indigo-700 hover:bg-indigo-800 hover:text-neutral-50'
+                        className='mb-1 bg-neutral-50 text-indigo-700 hover:bg-neutral-100 hover:text-indigo-800 shadow-md active:shadow-sm shadow-neutral-800/50'
                         buttonText="Twitch"
                         type={ButtonTypes.ALink}
                         onClick="https://twitch.tv/crispytaytortot"

@@ -31,7 +31,7 @@ export const Button = ({ className = "", buttonType = undefined, onClick = undef
         sticky: true
     });
 
-    let defaultClasses = `w-full transition-all duration-100 font-bebas group tracking-wide text-xl font-semibold box-border min-h-[41px] flex items-center justify-center py-2 px-4 rounded-md border-2 ${disabled ? 'bg-neutral-400 border-neutral-400 text-neutral-300 cursor-not-allowed' : filled ? 'hover:underline bg-indigo-700 hover:bg-indigo-800 text-slate-50 border-indigo-800 hover:border-indigo-900' : 'text-indigo-800 hover:underline bg-neutral-50 border-indigo-800 '}`;
+    let defaultClasses = `w-full transition-all duration-75 font-bebas group tracking-wide text-xl font-semibold box-border min-h-[41px] flex items-center justify-center py-2 px-4 rounded-md border-2 active:translate-x-[2px] active:translate-y-[2px] ${disabled ? 'bg-neutral-400 border-neutral-400 text-neutral-300 cursor-not-allowed' : filled ? 'hover:underline bg-indigo-700 hover:bg-indigo-800 text-slate-50 border-indigo-800 hover:border-indigo-900' : 'text-indigo-800 hover:underline bg-neutral-50 border-indigo-800 '}`;
     let classes = twMerge(defaultClasses, className);
 
     if (type === ButtonTypes.ALink) {
