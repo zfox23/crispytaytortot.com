@@ -50,6 +50,7 @@ const IndexPage = ({ data }) => {
         })
             .then(response => response.json())
             .then(data => {
+                console.log(data);
                 setNumSubscribers(parseInt(data.subCount));
                 setNumFollowers(parseInt(data.followerCount));
                 setViewerCount(parseInt(data.viewerCount));
@@ -188,7 +189,7 @@ const IndexPage = ({ data }) => {
                             {numSubscribers > 0 ? <p className='leading-6'>{numSubscribers.toLocaleString()} Subscribers</p> : null}
                         </Transition>
 
-                        <Transition
+                        {/* <Transition
                             show={showingTwitchViewershipGraph}
                             className='w-full text-neutral-50'
                             enter="ease-out duration-300"
@@ -281,7 +282,7 @@ const IndexPage = ({ data }) => {
                             leaveFrom="opacity-100 scale-100"
                             leaveTo="opacity-0 scale-95">
                             <p className='text-center'>Average Viewers while Live (Past 30 Days): {twitchViewershipAverage}</p>
-                        </Transition>
+                        </Transition> */}
                     </DivOnScreen>
                 </div>
 
