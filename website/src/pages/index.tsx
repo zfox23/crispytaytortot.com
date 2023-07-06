@@ -330,6 +330,18 @@ const IndexPage = ({ data }) => {
                             alt="Twitter" />} />
 
                     <Button
+                        className='mb-4 bg-indigo-500 hover:bg-indigo-600 border-indigo-500 hover:border-indigo-700'
+                        buttonText="Threads"
+                        type={ButtonTypes.ALink}
+                        onClick="https://www.threads.net/@crispytaytortot_"
+                        filled={true}
+                        buttonIconLeft={<StaticImage
+                            className='w-[16px] h-[16px]'
+                            src="../data/images/icons/threads.svg"
+                            placeholder='none'
+                            alt="Threads" />} />
+
+                    <Button
                         className='mb-16 bg-indigo-500 hover:bg-indigo-600 border-indigo-500 hover:border-indigo-700'
                         buttonText="TikTok"
                         type={ButtonTypes.ALink}
