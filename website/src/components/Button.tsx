@@ -41,6 +41,7 @@ export const Button = ({ className = "", buttonType = undefined, onClick = undef
                 ref={containerRef}>
                 <a
                     href={onClick as string}
+                    data-umami-event={`Button Clicked: ${buttonText}`}
                     target={linkTarget}
                     className={classes}>
                     <div className='relative flex items-center justify-center'>
