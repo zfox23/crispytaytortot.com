@@ -29,8 +29,16 @@ const IndexPage = ({ data }) => {
 
                     <div className='text-center mb-5 space-y-1'>
                         <p>IT Professional | WX Enthusiast</p>
-                        <p><span>Partnered with</span> <br /><a className="font-semibold" href="https://twitter.com/Twitch" target='_blank'>@Twitch</a> | <a className="font-semibold" href="https://twitter.com/FrontierDev" target='_blank'>@FrontierDev</a> | <a className="font-semibold" href="https://twitter.com/Ubisoft" target='_blank'>@Ubisoft</a></p>
-                        <p>Space | Management | RPGs</p>
+                        <p>Partnered with</p>
+                        <p className='!-mt-0.5'>
+                            <span>
+                                <a className="font-semibold hover:underline" href="https://twitter.com/Twitch" target='_blank'>@Twitch</a> | </span>
+                            <span>
+                                <a className="font-semibold hover:underline" href="https://twitter.com/FrontierDev" target='_blank'>@FrontierDev</a> | </span>
+                            <span>
+                                <a className="font-semibold hover:underline" href="https://twitter.com/Ubisoft" target='_blank'>@Ubisoft</a></span>
+                        </p>
+                        <p>Space | Management | Simulation</p>
                     </div>
 
                     <Divider className='mb-5 max-w-xl' />
@@ -48,24 +56,6 @@ const IndexPage = ({ data }) => {
 
                     <Button
                         className='mb-4'
-                        buttonText="Discord"
-                        type={ButtonTypes.ALink}
-                        onClick="https://crispytaytortot.com/discord"
-                        filled={true}
-                        buttonIconLeft={<DiscordIcon
-                            className='w-[24px] h-[18px]' />} />
-
-                    <Button
-                        className='mb-16'
-                        buttonText="Merch"
-                        type={ButtonTypes.ALink}
-                        onClick="https://crispytaytortot.store/"
-                        filled={true}
-                        buttonIconLeft={<ShoppingBagIcon
-                            className='h-6 w-6' />} />
-
-                    <Button
-                        className='mb-4 bg-indigo-500 hover:bg-indigo-600 border-indigo-500 hover:border-indigo-700'
                         buttonText="YouTube"
                         type={ButtonTypes.ALink}
                         onClick="https://youtube.com/crispytaytortot"
@@ -77,8 +67,29 @@ const IndexPage = ({ data }) => {
                             alt="YouTube" />} />
 
                     <Button
+                        className='mb-16'
+                        buttonText="Discord"
+                        type={ButtonTypes.ALink}
+                        onClick="https://crispytaytortot.com/discord"
+                        filled={true}
+                        buttonIconLeft={<DiscordIcon
+                            className='w-[24px] h-[18px]' />} />
+
+                    <Button
                         className='mb-4 bg-indigo-500 hover:bg-indigo-600 border-indigo-500 hover:border-indigo-700'
-                        buttonText="BlueSky"
+                        buttonText="TikTok"
+                        type={ButtonTypes.ALink}
+                        onClick="https://tiktok.com/@crispytaytortot"
+                        filled={true}
+                        buttonIconLeft={<StaticImage
+                            className='w-[14px] h-[16px]'
+                            src="../data/images/icons/tiktok.svg"
+                            placeholder='none'
+                            alt="TikTok" />} />
+
+                    <Button
+                        className='mb-4 bg-indigo-500 hover:bg-indigo-600 border-indigo-500 hover:border-indigo-700'
+                        buttonText="Bluesky"
                         type={ButtonTypes.ALink}
                         onClick="https://bsky.app/profile/crispytaytortot.bsky.social"
                         filled={true}
@@ -98,28 +109,13 @@ const IndexPage = ({ data }) => {
                             alt="Twitter" />} />
 
                     <Button
-                        className='mb-4 bg-indigo-500 hover:bg-indigo-600 border-indigo-500 hover:border-indigo-700'
-                        buttonText="Threads"
-                        type={ButtonTypes.ALink}
-                        onClick="https://www.threads.net/@crispytaytortot_"
-                        filled={true}
-                        buttonIconLeft={<StaticImage
-                            className='w-[16px] h-[16px]'
-                            src="../data/images/icons/threads.svg"
-                            placeholder='none'
-                            alt="Threads" />} />
-
-                    <Button
                         className='mb-16 bg-indigo-500 hover:bg-indigo-600 border-indigo-500 hover:border-indigo-700'
-                        buttonText="TikTok"
+                        buttonText="Merch"
                         type={ButtonTypes.ALink}
-                        onClick="https://tiktok.com/@crispytaytortot"
+                        onClick="https://crispytaytortot.store/"
                         filled={true}
-                        buttonIconLeft={<StaticImage
-                            className='w-[14px] h-[16px]'
-                            src="../data/images/icons/tiktok.svg"
-                            placeholder='none'
-                            alt="TikTok" />} />
+                        buttonIconLeft={<ShoppingBagIcon
+                            className='h-6 w-6' />} />
 
                     <Button
                         className='mb-4 bg-indigo-500 hover:bg-indigo-600 border-indigo-500 hover:border-indigo-700'
