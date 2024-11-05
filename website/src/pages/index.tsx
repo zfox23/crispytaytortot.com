@@ -8,20 +8,17 @@ import DiscordIcon from '../components/icons/DiscordIcon';
 import TwitchIcon from '../components/icons/TwitchIcon';
 import BlueSkyIcon from '../components/icons/BlueSkyIcon';
 import Divider from '../components/Divider';
+import { Background } from '../components/Background';
+import { SpinningBorderedTot } from '../components/SpinningBorderedTot';
 
 const IndexPage = ({ data }) => {
     return (
         <Layout>
             <SEOHeader title="Home" />
-            <div className='!absolute inset-0 z-10'>
-                <StaticImage className='!absolute inset-0' src="../data/images/channel-offline-image-1920x1080.jpg" alt="Warm, crispy potato tots." />
-                <div className='absolute inset-0 bg-neutral-900/50' />
-            </div>
-            <div className='w-full max-w-3xl flex flex-col items-center z-20 text-neutral-50'>
+            <Background />
+            <div className='w-full max-w-3xl flex flex-col items-center z-20 text-neutral-50 px-2 md:px-4'>
                 <div className='bg-neutral-900/90 w-full max-w-lg mt-8 mx-2 rounded-t-md pt-4 px-4 md:px-8'>
-                    <div className='rounded-full cursor-pointer p-1 border-2 border-solid bg-neutral-900/90 group border-indigo-800 w-24 h-24 relative mx-auto overflow-clip flex items-center justify-center'>
-                        <StaticImage height={72} quality={90} placeholder='blurred' className='group-hover:animate-spin' loading='eager' src="../data/images/Totmoji.png" alt="CrispyTaytortot's avatar is a cartoon tater tot with eyes and a happy expression." />
-                    </div>
+                    <SpinningBorderedTot />
                     <div className='text-center mb-3'>
                         <h1 className='font-semibold text-neutral-50 text-3xl'>CrispyTaytortot</h1>
                         <p className='text-sm opacity-80'>He/They/Carbohydrate</p>

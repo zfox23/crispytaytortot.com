@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
 
-export const Layout = ({ children, desktopClassList = "", mobileClassList = "" }) => {
+export const Layout = ({ children, showAttribution = true, desktopClassList = "", mobileClassList = "" }) => {
     return (
         <React.Fragment>
             <Helmet htmlAttributes={{
@@ -14,7 +14,7 @@ export const Layout = ({ children, desktopClassList = "", mobileClassList = "" }
                 <main className="grow flex flex-col items-center bg-neutral-800">
                     {children}
                 </main>
-                <Footer />
+                {showAttribution ? <Footer /> : null}
             </div>
         </React.Fragment>
     )

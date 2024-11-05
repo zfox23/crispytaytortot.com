@@ -51,7 +51,8 @@ module.exports = {
         sitemap: 'https://crispytaytortot.com/sitemap.xml',
         policy: [{ userAgent: '*', allow: '/' }]
       }
-    }
+    },
+    `gatsby-plugin-meta-redirect`
   ],
   proxy: {
     prefix: "/api",
