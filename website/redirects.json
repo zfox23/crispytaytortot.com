@@ -13,5 +13,10 @@
         "title": "Planet Coaster 2 - Xbox via CrispyTaytorTot",
         "fromPath": "/pc2-xbox/",
         "toPath": "https://www.xbox.com/en-US/games/store/planet-coaster-2/9PK5WS0HXQKQ"
+    },
+    {
+        "fromPath": "/pc2-ps5/",
+        "title": "Planet Coaster 2 - PS5 via CrispyTaytorTot",
+        "toPath": "https://store.playstation.com/en-us/product/UP2514-PPSA01736_00-PLANETCOASTER000"
     }
 ]
