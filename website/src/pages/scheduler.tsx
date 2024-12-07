@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { CheckIcon, PencilSquareIcon, TrashIcon, XMarkIcon } from "@heroicons/react/20/solid";
 
 interface ScheduleItem {
     id: number;
@@ -65,6 +66,8 @@ const Scheduler: React.FC = () => {
     const [editedTime, setEditedTime] = useState('');
     const [editedGame, setEditedGame] = useState('');
     const [editedDescription, setEditedDescription] = useState('');
+
+    const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
         if (!scheduleStartDate) return;
@@ -303,163 +306,191 @@ const Scheduler: React.FC = () => {
         }
     };
 
-    return (
-        <div className="flex justify-center items-center p-8 bg-gray-100 overflow-scroll">
-            <div className="w-full max-w-6xl p-6 bg-white rounded-lg shadow-md">
-                <input
-                    type="date"
-                    onChange={(e) => setScheduleStartDate(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm mb-4"
-                />
-                {scheduleStartDate ?
-                    <>
-                        <form onSubmit={addSchedule} className="mb-6 space-y-4">
-                            <select
-                                value={day}
-                                onChange={(e) => setDay(e.target.value)}
-                                required
-                                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            >
-                                <option value="">Select Day of Week</option>
-                                <option value="Mon">Monday</option>
-                                <option value="Tue">Tuesday</option>
-                                <option value="Wed">Wednesday</option>
-                                <option value="Thu">Thursday</option>
-                                <option value="Fri">Friday</option>
-                                <option value="Sat">Saturday</option>
-                                <option value="Sun">Sunday</option>
-                            </select>
-                            <input
-                                type="time"
-                                value={time}
-                                onChange={(e) => { setTime(e.target.value) }}
-                                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            />
-                            <input
-                                type="text"
-                                value={game}
-                                onChange={(e) => setGame(e.target.value)}
-                                placeholder="Enter game name"
-                                required
-                                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            />
-                            <input
-                                type="text"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                placeholder="(optional) Enter description"
-                                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            />
-                            <button
-                                type="submit"
-                                className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                            >
-                                Add to Schedule
-                            </button>
-                        </form>
+    const saveCanvasAsImage = () => {
+        if (!canvasRef.current) return;
+        const canvas = canvasRef.current;
+        const dataURL = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = dataURL;
+        link.download = 'schedule.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
-                        <table className="w-full mb-6 border-collapse">
-                            <thead>
-                                <tr>
-                                    <th className="px-4 py-2 bg-gray-100">Day</th>
-                                    <th className="px-4 py-2 bg-gray-100">Time</th>
-                                    <th className="px-4 py-2 bg-gray-100">Game</th>
-                                    <th className="px-4 py-2 bg-gray-100">Description</th>
-                                    <th className="px-4 py-2 bg-gray-100">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {schedules.map((schedule) => (
-                                    <tr key={schedule.id}>
+    return (
+        <div className="flex justify-center items-center p-4 bg-gray-100 overflow-y-auto min-h-screen">
+            <div className="max-w-full flex flex-row justify-center gap-4 flex-wrap p-4 bg-white rounded-lg shadow-md">
+                <div className='max-w-full overflow-auto'>
+                    <h1 className='text-xl font-semibold mb-4'>Crispy's Stream Scheduler</h1>
+                    <div className='flex flex-col items-start w-full'>
+                        <input
+                            type="date"
+                            onChange={(e) => setScheduleStartDate(e.target.value)}
+                            className="block w-full max-w-80 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm mb-8"
+                        />
+                        {scheduleStartDate ?
+                            <div className='flex flex-col items-start w-full'>
+                                <form onSubmit={addSchedule} className="mb-6 space-y-4 w-full max-w-80">
+                                    <select
+                                        value={day}
+                                        onChange={(e) => setDay(e.target.value)}
+                                        required
+                                        className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    >
+                                        <option value="">Day of Week</option>
+                                        <option value="Mon">Monday</option>
+                                        <option value="Tue">Tuesday</option>
+                                        <option value="Wed">Wednesday</option>
+                                        <option value="Thu">Thursday</option>
+                                        <option value="Fri">Friday</option>
+                                        <option value="Sat">Saturday</option>
+                                        <option value="Sun">Sunday</option>
+                                    </select>
+                                    <input
+                                        type="time"
+                                        value={time}
+                                        onChange={(e) => { setTime(e.target.value) }}
+                                        className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={game}
+                                        onChange={(e) => setGame(e.target.value)}
+                                        placeholder="Game name"
+                                        required
+                                        className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        placeholder="(optional) Description"
+                                        className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                    >
+                                        Add to Schedule
+                                    </button>
+                                </form>
+                            </div>
+                            : <p>Pick a Monday on which your schedule will start.</p>}
+                    </div>
+
+                    <table className="border-collapse overflow-x-scroll max-w-full">
+                        <thead>
+                            <tr>
+                                <th className="px-4 py-2 bg-gray-100">Day</th>
+                                <th className="px-4 py-2 bg-gray-100">Time</th>
+                                <th className="px-4 py-2 bg-gray-100">Game</th>
+                                <th className="px-4 py-2 bg-gray-100">Description</th>
+                                <th className="px-4 py-2 bg-gray-100">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {schedules.map((schedule) => (
+                                <tr key={schedule.id}>
+                                    {editingScheduleId === schedule.id ? (
+                                        <>
+                                            <td className="border px-4 py-2">
+                                                <select
+                                                    value={editedDay}
+                                                    onChange={(e) => setEditedDay(e.target.value)}
+                                                    required
+                                                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                                >
+                                                    <option value="">Select Day of Week</option>
+                                                    <option value="Mon">Monday</option>
+                                                    <option value="Tue">Tuesday</option>
+                                                    <option value="Wed">Wednesday</option>
+                                                    <option value="Thu">Thursday</option>
+                                                    <option value="Fri">Friday</option>
+                                                    <option value="Sat">Saturday</option>
+                                                    <option value="Sun">Sunday</option>
+                                                </select>
+                                            </td>
+                                            <td className="border px-4 py-2">
+                                                <input
+                                                    type="time"
+                                                    value={editedTime}
+                                                    onChange={(e) => setEditedTime(e.target.value)}
+                                                    required
+                                                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                                />
+                                            </td>
+                                            <td className="border px-4 py-2">
+                                                <input
+                                                    type="text"
+                                                    value={editedGame}
+                                                    onChange={(e) => setEditedGame(e.target.value)}
+                                                    required
+                                                    placeholder="Enter game name"
+                                                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                                />
+                                            </td>
+                                            <td className="border px-4 py-2">
+                                                <input
+                                                    type="text"
+                                                    value={editedDescription}
+                                                    onChange={(e) => setEditedDescription(e.target.value)}
+                                                    placeholder="(optional) Enter description"
+                                                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                                />
+                                            </td>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <td className="border px-4 py-2">{schedule.day}</td>
+                                            <td className="border px-4 py-2">{schedule.time}</td>
+                                            <td className="border px-4 py-2">{schedule.game}</td>
+                                            <td className="border px-4 py-2 max-w-64">{schedule.description}</td>
+                                        </>
+                                    )}
+                                    <td className="border px-4 py-2 flex gap-2">
                                         {editingScheduleId === schedule.id ? (
                                             <>
-                                                <td className="border px-4 py-2">
-                                                    <select
-                                                        value={editedDay}
-                                                        onChange={(e) => setEditedDay(e.target.value)}
-                                                        required
-                                                        className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                                    >
-                                                        <option value="">Select Day of Week</option>
-                                                        <option value="Mon">Monday</option>
-                                                        <option value="Tue">Tuesday</option>
-                                                        <option value="Wed">Wednesday</option>
-                                                        <option value="Thu">Thursday</option>
-                                                        <option value="Fri">Friday</option>
-                                                        <option value="Sat">Saturday</option>
-                                                        <option value="Sun">Sunday</option>
-                                                    </select>
-                                                </td>
-                                                <td className="border px-4 py-2">
-                                                    <input
-                                                        type="time"
-                                                        value={editedTime}
-                                                        onChange={(e) => setEditedTime(e.target.value)}
-                                                        required
-                                                        className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                                    />
-                                                </td>
-                                                <td className="border px-4 py-2">
-                                                    <input
-                                                        type="text"
-                                                        value={editedGame}
-                                                        onChange={(e) => setEditedGame(e.target.value)}
-                                                        required
-                                                        placeholder="Enter game name"
-                                                        className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                                    />
-                                                </td>
-                                                <td className="border px-4 py-2">
-                                                    <input
-                                                        type="text"
-                                                        value={editedDescription}
-                                                        onChange={(e) => setEditedDescription(e.target.value)}
-                                                        placeholder="(optional) Enter description"
-                                                        className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                                    />
-                                                </td>
+                                                <button
+                                                    onClick={() => saveScheduleChanges(schedule.id)}
+                                                    className="inline-flex justify-center py-2 px-3 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                                >
+                                                    <CheckIcon className='w-6 h-6' />
+                                                </button>
                                             </>
                                         ) : (
                                             <>
-                                                <td className="border px-4 py-2">{schedule.day}</td>
-                                                <td className="border px-4 py-2">{schedule.time}</td>
-                                                <td className="border px-4 py-2">{schedule.game}</td>
-                                                <td className="border px-4 py-2">{schedule.description}</td>
-                                            </>
-                                        )}
-                                        <td className="border px-4 py-2 flex gap-2">
-                                            {editingScheduleId === schedule.id ? (
-                                                <>
-                                                    <button
-                                                        onClick={() => saveScheduleChanges(schedule.id)}
-                                                        className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                                                    >
-                                                        Save
-                                                    </button>
-                                                </>
-                                            ) : (
                                                 <button
                                                     onClick={() => editSchedule(schedule.id)}
-                                                    className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                                    className="inline-flex justify-center py-2 px-3 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                                                 >
-                                                    Edit
+                                                    <PencilSquareIcon className='w-6 h-6' />
                                                 </button>
-                                            )}
-                                            <button
-                                                onClick={() => removeSchedule(schedule.id)}
-                                                className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                                            >
-                                                Remove
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </>
-                    : <p>Select a schedule start date above to get started.</p>}
+                                                <button
+                                                    onClick={() => removeSchedule(schedule.id)}
+                                                    className="inline-flex justify-center py-2 px-3 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                                >
+                                                    <TrashIcon className='w-6 h-6' />
+                                                </button>
+                                            </>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
 
-                <canvas id="scheduleCanvas" className="w-full h-auto border"></canvas>
+                <div className='w-full max-w-[768px]'>
+                    <canvas ref={canvasRef} id="scheduleCanvas" className="w-full h-auto border"></canvas>
+
+                    <button
+                        onClick={saveCanvasAsImage}
+                        className="w-full mt-4 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                        Save Schedule as PNG
+                    </button>
+                </div>
             </div>
         </div>
     );
