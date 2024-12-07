@@ -10,42 +10,48 @@ interface ScheduleItem {
     iconUrl?: string; // Store the icon URL
 }
 
-const bgImage = new Image();
-bgImage.src = '/tot-bg.jpg';
+const isBrowser = typeof window !== "undefined";
 
-const twitchIcon = new Image();
-const twitchIconBlob = new Blob([`<?xml version="1.0" encoding="UTF-8"?>
-<svg width="256px" height="268px" preserveAspectRatio="xMidYMid" version="1.1" viewBox="0 0 256 268" xmlns="http://www.w3.org/2000/svg">
-<g fill="#fff">
-<path d="m17.458 0-17.458 46.556v186.2h63.983v34.934h34.932l34.897-34.934h52.36l69.828-69.803v-162.95h-238.54zm23.259 23.263h192.01v128.03l-40.739 40.742h-63.992l-34.887 34.885v-34.885h-52.396v-168.77zm64.008 116.41h23.275v-69.825h-23.275v69.825zm63.997 0h23.27v-69.825h-23.27v69.825z" fill="#fff"/>
-</g>
-</svg>`], { type: 'image/svg+xml' });
-const twitchIconURL = URL.createObjectURL(twitchIconBlob);
-twitchIcon.src = twitchIconURL;
+let bgImage, twitchIcon, youTubeIcon, blueskyIcon, tiktokIcon;
 
-const youTubeIcon = new Image();
-const youTubeIconBlob = new Blob([`<?xml version="1.0" encoding="UTF-8"?>
-<svg width="756.99" height="533.33" version="1.1" viewBox="-35.2 -41.333 192.44 165.33" xmlns="http://www.w3.org/2000/svg">
- <path d="m37.277 76.226v-69.784l61.334 34.893zm136.43-91.742c-2.699-10.162-10.651-18.165-20.747-20.881-18.3-4.936-91.683-4.936-91.683-4.936s-73.382 0-91.682 4.936c-10.096 2.716-18.048 10.719-20.747 20.881-4.904 18.419-4.904 56.85-4.904 56.85s0 38.429 4.904 56.849c2.699 10.163 10.65 18.165 20.747 20.883 18.3 4.934 91.682 4.934 91.682 4.934s73.383 0 91.683-4.934c10.096-2.718 18.048-10.72 20.747-20.883 4.904-18.42 4.904-56.85 4.904-56.85s0-38.43-4.904-56.849" fill="#fff"/>
-</svg>`], { type: 'image/svg+xml' });
-const youTubeIconURL = URL.createObjectURL(youTubeIconBlob);
-youTubeIcon.src = youTubeIconURL;
+if (isBrowser) {
+    bgImage = new Image();
+    bgImage.src = '/tot-bg.jpg';
 
-const blueskyIcon = new Image();
-const blueskyIconBlob = new Blob([`<?xml version="1.0" encoding="UTF-8"?>
-<svg fill="#FFFFFF" aria-hidden="true" version="1.1" viewBox="0 0 580 510.68" xmlns="http://www.w3.org/2000/svg">
- <path d="m125.72 34.375c66.496 49.921 138.02 151.14 164.28 205.46 26.262-54.316 97.782-155.54 164.28-205.46 47.98-36.021 125.72-63.892 125.72 24.795 0 17.712-10.155 148.79-16.111 170.07-20.703 73.984-96.144 92.854-163.25 81.433 117.3 19.964 147.14 86.092 82.697 152.22-122.39 125.59-175.91-31.511-189.63-71.766-2.514-7.3797-3.6904-10.832-3.7077-7.8964-0.0174-2.9357-1.1937 0.51669-3.7077 7.8964-13.714 40.255-67.233 197.36-189.63 71.766-64.444-66.128-34.605-132.26 82.697-152.22-67.108 11.421-142.55-7.4491-163.25-81.433-5.9562-21.282-16.111-152.36-16.111-170.07 0-88.687 77.742-60.816 125.72-24.795z" clip-rule="evenodd" fill-rule="evenodd"/>
-</svg>`], { type: 'image/svg+xml' });
-const blueskyIconURL = URL.createObjectURL(blueskyIconBlob);
-blueskyIcon.src = blueskyIconURL;
+    twitchIcon = new Image();
+    const twitchIconBlob = new Blob([`<?xml version="1.0" encoding="UTF-8"?>
+    <svg width="256px" height="268px" preserveAspectRatio="xMidYMid" version="1.1" viewBox="0 0 256 268" xmlns="http://www.w3.org/2000/svg">
+    <g fill="#fff">
+    <path d="m17.458 0-17.458 46.556v186.2h63.983v34.934h34.932l34.897-34.934h52.36l69.828-69.803v-162.95h-238.54zm23.259 23.263h192.01v128.03l-40.739 40.742h-63.992l-34.887 34.885v-34.885h-52.396v-168.77zm64.008 116.41h23.275v-69.825h-23.275v69.825zm63.997 0h23.27v-69.825h-23.27v69.825z" fill="#fff"/>
+    </g>
+    </svg>`], { type: 'image/svg+xml' });
+    const twitchIconURL = URL.createObjectURL(twitchIconBlob);
+    twitchIcon.src = twitchIconURL;
 
-const tiktokIcon = new Image();
-const tiktokIconBlob = new Blob([`<?xml version="1.0" encoding="UTF-8"?>
-<svg clip-rule="evenodd" fill-rule="evenodd" image-rendering="optimizeQuality" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" version="1.1" viewBox="0 0 2859 3333" xmlns="http://www.w3.org/2000/svg">
- <path d="M2081 0c55 473 319 755 778 785v532c-266 26-499-61-770-225v995c0 1264-1378 1659-1932 753-356-583-138-1606 1004-1647v561c-87 14-180 36-265 65-254 86-398 247-358 531 77 544 1075 705 992-358V1h551z" fill="#fff"/>
-</svg>`], { type: 'image/svg+xml' });
-const tiktokIconURL = URL.createObjectURL(tiktokIconBlob);
-tiktokIcon.src = tiktokIconURL;
+    youTubeIcon = new Image();
+    const youTubeIconBlob = new Blob([`<?xml version="1.0" encoding="UTF-8"?>
+    <svg width="756.99" height="533.33" version="1.1" viewBox="-35.2 -41.333 192.44 165.33" xmlns="http://www.w3.org/2000/svg">
+     <path d="m37.277 76.226v-69.784l61.334 34.893zm136.43-91.742c-2.699-10.162-10.651-18.165-20.747-20.881-18.3-4.936-91.683-4.936-91.683-4.936s-73.382 0-91.682 4.936c-10.096 2.716-18.048 10.719-20.747 20.881-4.904 18.419-4.904 56.85-4.904 56.85s0 38.429 4.904 56.849c2.699 10.163 10.65 18.165 20.747 20.883 18.3 4.934 91.682 4.934 91.682 4.934s73.383 0 91.683-4.934c10.096-2.718 18.048-10.72 20.747-20.883 4.904-18.42 4.904-56.85 4.904-56.85s0-38.43-4.904-56.849" fill="#fff"/>
+    </svg>`], { type: 'image/svg+xml' });
+    const youTubeIconURL = URL.createObjectURL(youTubeIconBlob);
+    youTubeIcon.src = youTubeIconURL;
+
+    blueskyIcon = new Image();
+    const blueskyIconBlob = new Blob([`<?xml version="1.0" encoding="UTF-8"?>
+    <svg fill="#FFFFFF" aria-hidden="true" version="1.1" viewBox="0 0 580 510.68" xmlns="http://www.w3.org/2000/svg">
+     <path d="m125.72 34.375c66.496 49.921 138.02 151.14 164.28 205.46 26.262-54.316 97.782-155.54 164.28-205.46 47.98-36.021 125.72-63.892 125.72 24.795 0 17.712-10.155 148.79-16.111 170.07-20.703 73.984-96.144 92.854-163.25 81.433 117.3 19.964 147.14 86.092 82.697 152.22-122.39 125.59-175.91-31.511-189.63-71.766-2.514-7.3797-3.6904-10.832-3.7077-7.8964-0.0174-2.9357-1.1937 0.51669-3.7077 7.8964-13.714 40.255-67.233 197.36-189.63 71.766-64.444-66.128-34.605-132.26 82.697-152.22-67.108 11.421-142.55-7.4491-163.25-81.433-5.9562-21.282-16.111-152.36-16.111-170.07 0-88.687 77.742-60.816 125.72-24.795z" clip-rule="evenodd" fill-rule="evenodd"/>
+    </svg>`], { type: 'image/svg+xml' });
+    const blueskyIconURL = URL.createObjectURL(blueskyIconBlob);
+    blueskyIcon.src = blueskyIconURL;
+
+    tiktokIcon = new Image();
+    const tiktokIconBlob = new Blob([`<?xml version="1.0" encoding="UTF-8"?>
+    <svg clip-rule="evenodd" fill-rule="evenodd" image-rendering="optimizeQuality" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" version="1.1" viewBox="0 0 2859 3333" xmlns="http://www.w3.org/2000/svg">
+     <path d="M2081 0c55 473 319 755 778 785v532c-266 26-499-61-770-225v995c0 1264-1378 1659-1932 753-356-583-138-1606 1004-1647v561c-87 14-180 36-265 65-254 86-398 247-358 531 77 544 1075 705 992-358V1h551z" fill="#fff"/>
+    </svg>`], { type: 'image/svg+xml' });
+    const tiktokIconURL = URL.createObjectURL(tiktokIconBlob);
+    tiktokIcon.src = tiktokIconURL;
+}
 
 const Scheduler: React.FC = () => {
     const [schedules, setSchedules] = useState<ScheduleItem[]>([]);
