@@ -109,8 +109,8 @@ const refreshTwitchUserAuthInfo = async (refresh_token: string) => {
     }
 }
 
-app.get("/api/v1/twitch/connect", async (req, res) => {
-    const csrfToken = generateToken(res, req);
+app.get("/api/v1/twitch/connect", async (req, res: Response) => {
+    const csrfToken = generateToken(res as any, req as any);
     const forceVerify = true;
     return res.redirect(`https://id.twitch.tv/oauth2/authorize?response_type=code&${forceVerify ? "force_verify=true&" : ""}client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=${process.env.TWITCH_REDIRECT_URI}&scope=channel%3Aread%3Asubscriptions+moderator%3Aread%3Afollowers&state=${csrfToken}`)
 })
@@ -399,7 +399,7 @@ app.get("/api/v1/twitch/avg-viewers-30-days", async (req, res: Response) => {
     if (result) {
         return res.json(result);
     } else {
-        return res.status(500).json({ok: false, message: "Couldn't get viewer data for the last 30 days."});
+        return res.status(500).json({ ok: false, message: "Couldn't get viewer data for the last 30 days." });
     }
 })
 
@@ -450,5 +450,39 @@ setInterval(async () => {
     getViewerCountCallback();
 }, parseInt(process.env.TWITCH_GET_VIEWER_COUNT_INTERVAL_MS || '900000'));
 getViewerCountCallback();
+
+let allGames: any;
+const cacheAllOwnedApps = async () => {
+    const url = `http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${process.env.STEAM_WEB_API_KEY}&steamid=${process.env.STEAM_ID_64_DEC}&format=json&include_appinfo=true`;
+    const appListResponse = await fetch(url);
+    const appListResponseJSON = await appListResponse.json();
+    allGames = appListResponseJSON.response.games;
+}
+cacheAllOwnedApps();
+
+// Endpoint to search for a game and get its App ID
+app.get('/api/search-game', async (req, res) => {
+    const { gameName } = req.query;
+    if (!gameName) {
+        return res.status(400).json({ error: 'Query parameter "gameName" is required' });
+    }
+
+    try {
+        const appInfo = allGames.find((app: any) => {
+            return app.name === gameName;
+        });
+        if (!appInfo) {
+            return res.status(404).json({ error: 'Game details not found' });
+        }
+
+        // Construct the icon URL
+        const iconUrl = `http://media.steampowered.com/steamcommunity/public/images/apps/${appInfo.appid}/${appInfo.img_icon_url}.jpg`;
+
+        res.json({ iconUrl });
+    } catch (error) {
+        console.error('Error fetching game details:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
 
 app.listen(4243, () => console.log(`${Date.now()}: crispytaytortot.com NodeJS server listening on port 4243!`));
