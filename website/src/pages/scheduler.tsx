@@ -185,7 +185,7 @@ const Scheduler: React.FC = () => {
         ctx.drawImage(twitchIcon, footerIconX, FOOTER_ICON_Y_PX, FOOTER_ICON_WIDTH_PX, FOOTER_ICON_HEIGHT_PX);
 
         ctx.fillStyle = "#ffffff";
-        ctx.font = '48px Eurostile';
+        ctx.font = '48px tilt-neon';
         ctx.fillText("/crispytaytortot", canvas.width / 2, canvas.height - 36);
     }
 
@@ -240,7 +240,7 @@ const Scheduler: React.FC = () => {
         let text;
 
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = 'bold 56px Eurostile';
+        ctx.font = 'bold 56px tilt-neon';
 
         const [year, month, date] = scheduleStartDate.split('-').map(Number);
         const startDate = new Date(year, month - 1, date);
@@ -270,7 +270,7 @@ const Scheduler: React.FC = () => {
                 ctx.roundRect(textX, textY, canvas.width - (2 * textX), DAY_RECT_BG_BASE_HEIGHT_PX + ((numCurrentDays - 1) * 82), DAY_RECT_BG_RADII_PX);
                 ctx.fill();
 
-                ctx.font = `${WEEKDAY_TEXT_HEIGHT_PX}px Eurostile`;
+                ctx.font = `${WEEKDAY_TEXT_HEIGHT_PX}px tilt-neon`;
                 textX += DAY_RECT_BG_RADII_PX / 2;
                 textY += DAY_RECT_BG_BASE_HEIGHT_PX / 2 + 15;
                 ctx.fillStyle = "#FFFFFF";
@@ -294,7 +294,7 @@ const Scheduler: React.FC = () => {
 
             textX += GAME_ICON_WIDTH_PX + 12; // Adjust text position to be after the icon (even if there isn't one)
 
-            ctx.font = `${DETAILS_TEXT_HEIGHT_PX}px Eurostile`;
+            ctx.font = `${DETAILS_TEXT_HEIGHT_PX}px tilt-neon`;
             const savedTextY = textY;
             if (sortedSchedules[i].time && sortedSchedules[i].game && sortedSchedules[i].description) {
                 textY -= (DETAILS_TEXT_HEIGHT_PX - 13);
@@ -364,7 +364,7 @@ const Scheduler: React.FC = () => {
     };
 
     return (
-        <div className="flex justify-center items-center p-4 bg-gray-100 overflow-y-auto min-h-screen">
+        <div className="flex font-sans justify-center items-center p-4 bg-gray-100 overflow-y-auto min-h-screen">
             <div className="max-w-full flex flex-row justify-center gap-4 flex-wrap p-4 bg-white rounded-lg shadow-md">
                 <div className='max-w-full overflow-auto flex flex-col gap-4'>
                     <h1 className='text-xl font-semibold'>Crispy's Stream Scheduler</h1>

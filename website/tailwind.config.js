@@ -11,6 +11,9 @@ module.exports = {
       animation: {
         'spin': 'spin 1s ease-in-out 1'
       },
+      fontFamily: {
+        'sans': ['tilt-neon', ...defaultTheme.fontFamily.sans],
+      },
       keyframes: {
         spin: {
           '0%, ': {
