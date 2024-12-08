@@ -73,10 +73,12 @@ const Scheduler: React.FC = () => {
     const [editedDescription, setEditedDescription] = useState('');
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const importJsonTextareaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
         if (!scheduleStartDate) return;
         renderSchedule();
+        saveScheduleAsJSON();
     }, [scheduleStartDate, schedules]);
 
     const addSchedule = (event: React.FormEvent) => {
@@ -234,25 +236,24 @@ const Scheduler: React.FC = () => {
         let DETAILS_TEXT_HEIGHT_PX = 36;
 
         let textX = 12;
-        let textY = 48;
+        let textY = 64;
         let text;
 
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = '56px Eurostile';
-        ctx.fillText("Schedule", textX, textY);
+        ctx.font = 'bold 56px Eurostile';
 
         const [year, month, date] = scheduleStartDate.split('-').map(Number);
         const startDate = new Date(year, month - 1, date);
         const endDate = new Date(year, month - 1, date + 6);
 
         text = formatDateRange(startDate, endDate);
-        textX = canvas.width - 12;
-        ctx.textAlign = "right";
+        textX = canvas.width / 2;
+        ctx.textAlign = "center";
         ctx.fillText(text, textX, textY);
 
         ctx.textAlign = "start";
 
-        textY += 48;
+        textY += 32;
 
         let currentDay: string = "";
 
@@ -339,11 +340,34 @@ const Scheduler: React.FC = () => {
         document.body.removeChild(link);
     };
 
+    const saveScheduleAsJSON = () => {
+        if (!importJsonTextareaRef.current) return;
+
+        const jsonContent = JSON.stringify(schedules, null, 2);
+        importJsonTextareaRef.current.value = jsonContent;
+    };
+
+    const importScheduleFromJSON = () => {
+        try {
+            if (!importJsonTextareaRef.current) return;
+            const jsonContent = importJsonTextareaRef.current.value;
+            if (!jsonContent) {
+                setSchedules([]);
+                return;
+            }
+
+            const importedSchedules = JSON.parse(jsonContent);
+            setSchedules(importedSchedules);
+        } catch (error) {
+            alert('Invalid JSON format. Please check your input and try again.');
+        }
+    };
+
     return (
         <div className="flex justify-center items-center p-4 bg-gray-100 overflow-y-auto min-h-screen">
             <div className="max-w-full flex flex-row justify-center gap-4 flex-wrap p-4 bg-white rounded-lg shadow-md">
-                <div className='max-w-full overflow-auto'>
-                    <h1 className='text-xl font-semibold mb-4'>Crispy's Stream Scheduler</h1>
+                <div className='max-w-full overflow-auto flex flex-col gap-4'>
+                    <h1 className='text-xl font-semibold'>Crispy's Stream Scheduler</h1>
                     <div className='flex flex-col items-start w-full'>
                         <input
                             type="date"
@@ -352,7 +376,7 @@ const Scheduler: React.FC = () => {
                         />
                         {scheduleStartDate ?
                             <div className='flex flex-col items-start w-full'>
-                                <form onSubmit={addSchedule} className="mb-6 space-y-4 w-full max-w-80">
+                                <form onSubmit={addSchedule} className="space-y-4 w-full max-w-80">
                                     <select
                                         value={day}
                                         onChange={(e) => setDay(e.target.value)}
@@ -499,14 +523,29 @@ const Scheduler: React.FC = () => {
                             ))}
                         </tbody>
                     </table>
+
+                    <div className='flex flex-col gap-2 grow'>
+                        <textarea
+                            ref={importJsonTextareaRef}
+                            className="w-full grow p-2 min-h-32 border border-gray-300 rounded-md shadow-sm text-xs font-mono"
+                            placeholder="Paste your schedule JSON here..."
+                        ></textarea>
+
+                        <button
+                            onClick={importScheduleFromJSON}
+                            className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                            Import Schedule from JSON
+                        </button>
+                    </div>
                 </div>
 
-                <div className='w-full max-w-[768px]'>
+                <div className='w-full max-w-[768px] flex flex-col gap-2'>
                     <canvas ref={canvasRef} id="scheduleCanvas" className="w-full h-auto border"></canvas>
 
                     <button
                         onClick={saveCanvasAsImage}
-                        className="w-full mt-4 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
                         Save Schedule as PNG
                     </button>
