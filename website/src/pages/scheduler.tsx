@@ -127,7 +127,7 @@ const Scheduler: React.FC = () => {
             return responseJSON;
         } catch (error) {
             console.error('Error fetching game details:', error);
-            return {};
+            return { iconUrl: "/crispytaytortot-70x70.png" };
         }
     };
 
@@ -282,7 +282,7 @@ const Scheduler: React.FC = () => {
             // Fetch game icon
             const { iconUrl } = await fetchAppIdAndIcon(sortedSchedules[i].game);
 
-            if (iconUrl) {
+            if (iconUrl && sortedSchedules[i].game.toLowerCase() !== "off") {
                 const img = new Image();
                 img.src = iconUrl;
                 img.setAttribute('data-text-x', textX.toString());
