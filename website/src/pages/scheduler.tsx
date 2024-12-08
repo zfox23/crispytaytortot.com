@@ -123,7 +123,12 @@ const Scheduler: React.FC = () => {
         try {
             // Fetch game details from the proxy server
             const response = await fetch(`/api/search-game?gameName=${encodeURIComponent(gameName)}`);
-            const responseJSON = await response.json();
+            let responseJSON = await response.json();
+
+            if (!(responseJSON && responseJSON.iconUrl)) {
+                return { iconUrl: "/crispytaytortot-70x70.png" };
+            }
+
             return responseJSON;
         } catch (error) {
             console.error('Error fetching game details:', error);
