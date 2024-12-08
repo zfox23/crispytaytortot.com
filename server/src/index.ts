@@ -460,6 +460,31 @@ const cacheAllOwnedApps = async () => {
 }
 cacheAllOwnedApps();
 
+const imageToBase64 = async (url: string) => {
+    try {
+        // Fetch the image as an ArrayBuffer
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        // Convert the buffer to a Base64 string
+        const base64String = buffer.toString('base64');
+
+        // Get the content type from the headers
+        const contentType = response.headers.get('content-type');
+
+        return `data:${contentType};base64,${base64String}`;
+    } catch (error) {
+        console.error('Error converting image to base64:', error);
+        throw error;
+    }
+}
+
 // Endpoint to search for a game and get its App ID
 app.get('/api/search-game', async (req, res) => {
     const { gameName } = req.query;
@@ -478,7 +503,10 @@ app.get('/api/search-game', async (req, res) => {
         // Construct the icon URL
         const iconUrl = `http://media.steampowered.com/steamcommunity/public/images/apps/${appInfo.appid}/${appInfo.img_icon_url}.jpg`;
 
-        res.json({ iconUrl });
+        // Construct the data URL
+        const dataUrl = await imageToBase64(iconUrl);
+
+        res.json({ iconUrl: dataUrl });
     } catch (error) {
         console.error('Error fetching game details:', error);
         res.status(500).json({ error: 'Internal Server Error' });
