@@ -18,6 +18,7 @@ let bgImage, twitchIcon, youTubeIcon, blueskyIcon, tiktokIcon;
 if (isBrowser) {
     bgImage = new Image();
     bgImage.src = '/tot-bg.jpg';
+    bgImage.crossOrigin = "anonymous";
 
     twitchIcon = new Image();
     const twitchIconBlob = new Blob([`<?xml version="1.0" encoding="UTF-8"?>
@@ -28,6 +29,7 @@ if (isBrowser) {
     </svg>`], { type: 'image/svg+xml' });
     const twitchIconURL = URL.createObjectURL(twitchIconBlob);
     twitchIcon.src = twitchIconURL;
+    twitchIcon.crossOrigin = "anonymous";
 
     youTubeIcon = new Image();
     const youTubeIconBlob = new Blob([`<?xml version="1.0" encoding="UTF-8"?>
@@ -36,6 +38,7 @@ if (isBrowser) {
     </svg>`], { type: 'image/svg+xml' });
     const youTubeIconURL = URL.createObjectURL(youTubeIconBlob);
     youTubeIcon.src = youTubeIconURL;
+    youTubeIcon.crossOrigin = "anonymous";
 
     blueskyIcon = new Image();
     const blueskyIconBlob = new Blob([`<?xml version="1.0" encoding="UTF-8"?>
@@ -44,6 +47,7 @@ if (isBrowser) {
     </svg>`], { type: 'image/svg+xml' });
     const blueskyIconURL = URL.createObjectURL(blueskyIconBlob);
     blueskyIcon.src = blueskyIconURL;
+    blueskyIcon.crossOrigin = "anonymous";
 
     tiktokIcon = new Image();
     const tiktokIconBlob = new Blob([`<?xml version="1.0" encoding="UTF-8"?>
@@ -52,6 +56,7 @@ if (isBrowser) {
     </svg>`], { type: 'image/svg+xml' });
     const tiktokIconURL = URL.createObjectURL(tiktokIconBlob);
     tiktokIcon.src = tiktokIconURL;
+    tiktokIcon.crossOrigin = "anonymous";
 }
 
 const Scheduler: React.FC = () => {
@@ -182,8 +187,8 @@ const Scheduler: React.FC = () => {
         ctx.fillText("/crispytaytortot", canvas.width / 2, canvas.height - 36);
     }
 
-    const renderSchedule = async () => {
-        const sortedSchedules = [...schedules].sort((a, b) => {
+    const sortSchedules = (inputSchedules) => {
+        const sortedSchedules = [...inputSchedules].sort((a, b) => {
             const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
             if (days.indexOf(a.day) === days.indexOf(b.day)) {
                 if (a.time && !b.time) {
@@ -196,6 +201,12 @@ const Scheduler: React.FC = () => {
             }
             return days.indexOf(a.day) - days.indexOf(b.day);
         });
+
+        return sortedSchedules;
+    }
+
+    const renderSchedule = async () => {
+        const sortedSchedules = sortSchedules(schedules);
 
         const canvas = document.getElementById('scheduleCanvas') as HTMLCanvasElement;
         const ctx = canvas.getContext('2d');
@@ -215,8 +226,8 @@ const Scheduler: React.FC = () => {
 
         renderFooter(ctx, canvas);
 
-        let DAY_RECT_BG_HEIGHT_PX = 96;
-        let DAY_RECT_BG_RADII_PX = DAY_RECT_BG_HEIGHT_PX / 2;
+        let DAY_RECT_BG_BASE_HEIGHT_PX = 96;
+        let DAY_RECT_BG_RADII_PX = DAY_RECT_BG_BASE_HEIGHT_PX / 2;
         let GAME_ICON_WIDTH_PX = 64;
         let GAME_ICON_HEIGHT_PX = 64;
         let WEEKDAY_TEXT_HEIGHT_PX = 48;
@@ -227,9 +238,8 @@ const Scheduler: React.FC = () => {
         let text;
 
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = '48px Eurostile';
+        ctx.font = '56px Eurostile';
         ctx.fillText("Schedule", textX, textY);
-
 
         const [year, month, date] = scheduleStartDate.split('-').map(Number);
         const startDate = new Date(year, month - 1, date);
@@ -247,20 +257,26 @@ const Scheduler: React.FC = () => {
         let currentDay: string = "";
 
         for (let i = 0; i < sortedSchedules.length; i++) {
+            let numCurrentDays;
             textX = 32;
             if (currentDay !== sortedSchedules[i].day) {
+                currentDay = sortedSchedules[i].day;
+                numCurrentDays = sortedSchedules.filter((s) => { return s.day === currentDay; }).length;
+                console.log(currentDay, numCurrentDays)
+
                 ctx.fillStyle = "#000000AA";
                 ctx.beginPath();
-                ctx.roundRect(textX, textY, canvas.width - (2 * textX), DAY_RECT_BG_HEIGHT_PX, DAY_RECT_BG_RADII_PX);
+                ctx.roundRect(textX, textY, canvas.width - (2 * textX), DAY_RECT_BG_BASE_HEIGHT_PX + ((numCurrentDays - 1) * 82), DAY_RECT_BG_RADII_PX);
                 ctx.fill();
 
                 ctx.font = `${WEEKDAY_TEXT_HEIGHT_PX}px Eurostile`;
                 textX += DAY_RECT_BG_RADII_PX / 2;
-                textY += DAY_RECT_BG_HEIGHT_PX / 2 + 15;
+                textY += DAY_RECT_BG_BASE_HEIGHT_PX / 2 + 15;
                 ctx.fillStyle = "#FFFFFF";
                 ctx.fillText(sortedSchedules[i].day.toUpperCase(), textX, textY);
                 textX += 118;
-                currentDay = sortedSchedules[i].day;
+            } else {
+                textX += DAY_RECT_BG_RADII_PX / 2 + 118;
             }
             // Fetch game icon
             const { iconUrl } = await fetchAppIdAndIcon(sortedSchedules[i].game);
@@ -302,7 +318,12 @@ const Scheduler: React.FC = () => {
                 text = `${sortedSchedules[i].game}`;
                 ctx.fillText(text, textX, textY);
             }
-            textY = savedTextY + DAY_RECT_BG_HEIGHT_PX / 2;
+
+            if (sortedSchedules[i + 1] && currentDay !== sortedSchedules[i + 1].day) {
+                textY = savedTextY + DAY_RECT_BG_BASE_HEIGHT_PX / 2;
+            } else {
+                textY = savedTextY + 84;
+            }
         }
     };
 
@@ -390,7 +411,7 @@ const Scheduler: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {schedules.map((schedule) => (
+                            {sortSchedules(schedules).map((schedule) => (
                                 <tr key={schedule.id}>
                                     {editingScheduleId === schedule.id ? (
                                         <>
@@ -416,7 +437,6 @@ const Scheduler: React.FC = () => {
                                                     type="time"
                                                     value={editedTime}
                                                     onChange={(e) => setEditedTime(e.target.value)}
-                                                    required
                                                     className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                                 />
                                             </td>
