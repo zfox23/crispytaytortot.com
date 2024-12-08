@@ -84,7 +84,7 @@ const Scheduler: React.FC = () => {
     const addSchedule = (event: React.FormEvent) => {
         event.preventDefault();
         if (day && game) {
-            setSchedules([...schedules, { id: Date.now(), day, time, game }]);
+            setSchedules([...schedules, { id: Date.now(), day, time, game, description }]);
             setDay('');
             setTime('');
             setGame('');
