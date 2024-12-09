@@ -607,30 +607,30 @@ const Scheduler: React.FC = () => {
                                     </>
                                 ) : (
                                     <>
-                                        <td className="border px-2 py-1 md:px-4 md:py-2 text-center relative group cursor-pointer" onClick={() => {
-                                            editSchedule(schedule.id);
-                                            setTimeout(() => dayInputRef.current?.focus(), 0);
-                                        }}>
-                                            <span className='group-hover:blur-sm'>{schedule.day}</span>
+                                        <td className="border px-2 py-1 md:px-4 md:py-2 text-center relative group cursor-pointer">
+                                            <button className='group-hover:blur-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500' onClick={() => {
+                                                editSchedule(schedule.id);
+                                                setTimeout(() => dayInputRef.current?.focus(), 0);
+                                            }}>{schedule.day}</button>
                                             <PencilIcon className='w-8 h-8 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 hidden group-hover:block bg-indigo-700/90 rounded-md p-2 text-white' />
                                         </td>
-                                        <td className="border px-2 py-1 md:px-4 md:py-2 text-center relative group cursor-pointer" onClick={() => {
-                                            editSchedule(schedule.id);
-                                            setTimeout(() => timeInputRef.current?.focus(), 0);
-                                        }}>
-                                            <span className='group-hover:blur-sm'>{schedule.time}</span>
+                                        <td className="border px-2 py-1 md:px-4 md:py-2 text-center relative group cursor-pointer">
+                                            <button className='group-hover:blur-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500' onClick={() => {
+                                                editSchedule(schedule.id);
+                                                setTimeout(() => timeInputRef.current?.focus(), 0);
+                                            }}>{schedule.time ? schedule.time : <span className='italic opacity-30'>none</span>}</button>
                                             <PencilIcon className='w-8 h-8 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 hidden group-hover:block bg-indigo-700/90 rounded-md p-2 text-white' /></td>
-                                        <td className="border px-2 py-1 md:px-4 md:py-2 relative group cursor-pointer" onClick={() => {
-                                            editSchedule(schedule.id);
-                                            setTimeout(() => gameInputRef.current?.focus(), 0);
-                                        }}>
-                                            <span className='group-hover:blur-sm'>{schedule.game}</span>
+                                        <td className="border px-2 py-1 md:px-4 md:py-2 relative group cursor-pointer">
+                                            <button className='group-hover:blur-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500' onClick={() => {
+                                                editSchedule(schedule.id);
+                                                setTimeout(() => gameInputRef.current?.focus(), 0);
+                                            }}>{schedule.game}</button>
                                             <PencilIcon className='w-8 h-8 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 hidden group-hover:block bg-indigo-700/90 rounded-md p-2 text-white' /></td>
-                                        <td className="border px-2 py-1 md:px-4 md:py-2 break-all relative group cursor-pointer" onClick={() => {
-                                            editSchedule(schedule.id);
-                                            setTimeout(() => descriptionInputRef.current?.focus(), 0);
-                                        }}>
-                                            <span className='group-hover:blur-sm'>{schedule.description}</span>
+                                        <td className="border px-2 py-1 md:px-4 md:py-2 break-all relative group cursor-pointer">
+                                            <button className='group-hover:blur-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500' onClick={() => {
+                                                editSchedule(schedule.id);
+                                                setTimeout(() => descriptionInputRef.current?.focus(), 0);
+                                            }}>{schedule.description ? schedule.description : <span className='italic opacity-30'>none</span>}</button>
                                             <PencilIcon className='w-8 h-8 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 hidden group-hover:block bg-indigo-700/90 rounded-md p-2 text-white' /></td>
                                     </>
                                 )}
