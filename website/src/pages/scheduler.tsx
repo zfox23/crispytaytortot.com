@@ -1,8 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { CheckIcon, PencilSquareIcon, TrashIcon, XMarkIcon } from "@heroicons/react/20/solid";
+import { CheckIcon, PencilSquareIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import { ArrowDownTrayIcon, CloudArrowDownIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
+import SEOHeader from '../components/SEOHeader';
+import { Footer } from '../components/Footer';
+import { StaticImage } from 'gatsby-plugin-image';
 
 interface ScheduleItem {
-    id: number;
+    id: string;
     day: string;
     time?: string;
     game: string;
@@ -66,7 +70,7 @@ const Scheduler: React.FC = () => {
     const [time, setTime] = useState('');
     const [game, setGame] = useState('');
     const [description, setDescription] = useState('');
-    const [editingScheduleId, setEditingScheduleId] = useState<number | null>(null);
+    const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null);
     const [editedDay, setEditedDay] = useState('');
     const [editedTime, setEditedTime] = useState('');
     const [editedGame, setEditedGame] = useState('');
@@ -74,6 +78,36 @@ const Scheduler: React.FC = () => {
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const importJsonTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const getNextMonday = () => {
+        // Get today's date
+        const today = new Date();
+
+        // Calculate the day of the week (0 for Sunday, 1 for Monday, ..., 6 for Saturday)
+        const currentDayOfWeek = today.getDay();
+
+        // Calculate how many days to add to get to the next Monday
+        // If today is Monday (1), we need to add 6 days to get to the next Monday
+        // If today is Sunday (0), we need to add 1 day to get to the next Monday
+        const daysUntilNextMonday = (8 - currentDayOfWeek) % 7;
+
+        // Create a new date for the next Monday
+        const nextMonday = new Date(today);
+        nextMonday.setDate(today.getDate() + daysUntilNextMonday);
+
+        // Format the date in YYYY-MM-DD format
+        const year = nextMonday.getFullYear();
+        const month = String(nextMonday.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+        const day = String(nextMonday.getDate()).padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
+    }
+
+    useEffect(() => {
+        const nextMonday = getNextMonday();
+        console.log(nextMonday)
+        setScheduleStartDate(nextMonday);
+    }, [])
 
     useEffect(() => {
         if (!scheduleStartDate) return;
@@ -84,7 +118,7 @@ const Scheduler: React.FC = () => {
     const addSchedule = (event: React.FormEvent) => {
         event.preventDefault();
         if (day && game) {
-            setSchedules([...schedules, { id: Date.now(), day, time, game, description }]);
+            setSchedules([...schedules, { id: crypto.randomUUID(), day, time, game, description }]);
             setDay('');
             setTime('');
             setGame('');
@@ -92,7 +126,7 @@ const Scheduler: React.FC = () => {
         }
     };
 
-    const editSchedule = (id: number) => {
+    const editSchedule = (id: string) => {
         const scheduleToEdit = schedules.find((schedule) => schedule.id === id);
         if (scheduleToEdit) {
             setEditingScheduleId(id);
@@ -103,12 +137,11 @@ const Scheduler: React.FC = () => {
         }
     };
 
-    const removeSchedule = (id: number) => {
+    const removeSchedule = (id: string) => {
         setSchedules(schedules.filter((schedule) => schedule.id !== id));
     };
 
-
-    const saveScheduleChanges = (id: number) => {
+    const saveScheduleChanges = (id: string) => {
         setSchedules((prevSchedules) =>
             prevSchedules.map((schedule) =>
                 schedule.id === id
@@ -119,7 +152,29 @@ const Scheduler: React.FC = () => {
         setEditingScheduleId(null);
     };
 
+    const sortSchedules = (inputSchedules) => {
+        const sortedSchedules = [...inputSchedules].sort((a, b) => {
+            const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+            if (days.indexOf(a.day) === days.indexOf(b.day)) {
+                if (a.time && !b.time) {
+                    return 1;
+                } else if (!a.time && b.time) {
+                    return -1;
+                } else if (a.time && b.time) {
+                    return a.time.localeCompare(b.time);
+                }
+            }
+            return days.indexOf(a.day) - days.indexOf(b.day);
+        });
+
+        return sortedSchedules;
+    }
+
     const fetchAppIdAndIcon = async (gameName: string): Promise<{ appId?: number; iconUrl?: string }> => {
+        if (!gameName) {
+            return { iconUrl: "/crispytaytortot-70x70.png" };
+        }
+
         try {
             // Fetch game details from the proxy server
             const response = await fetch(`/api/search-game?gameName=${encodeURIComponent(gameName)}`);
@@ -192,24 +247,6 @@ const Scheduler: React.FC = () => {
         ctx.fillStyle = "#ffffff";
         ctx.font = '48px tilt-neon';
         ctx.fillText("/crispytaytortot", canvas.width / 2, canvas.height - 36);
-    }
-
-    const sortSchedules = (inputSchedules) => {
-        const sortedSchedules = [...inputSchedules].sort((a, b) => {
-            const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-            if (days.indexOf(a.day) === days.indexOf(b.day)) {
-                if (a.time && !b.time) {
-                    return 1;
-                } else if (!a.time && b.time) {
-                    return -1;
-                } else if (a.time && b.time) {
-                    return a.time.localeCompare(b.time);
-                }
-            }
-            return days.indexOf(a.day) - days.indexOf(b.day);
-        });
-
-        return sortedSchedules;
     }
 
     const renderSchedule = async () => {
@@ -348,7 +385,11 @@ const Scheduler: React.FC = () => {
     const saveScheduleAsJSON = () => {
         if (!importJsonTextareaRef.current) return;
 
-        const jsonContent = JSON.stringify(schedules, null, 2);
+        const jsonContent = JSON.stringify({
+            scheduleStartDate: scheduleStartDate,
+            schedules: schedules
+        }, null, 2);
+
         importJsonTextareaRef.current.value = jsonContent;
     };
 
@@ -358,30 +399,60 @@ const Scheduler: React.FC = () => {
             const jsonContent = importJsonTextareaRef.current.value;
             if (!jsonContent) {
                 setSchedules([]);
+                setScheduleStartDate(new Date().toISOString().split('T')[0]); // Reset to today's date
                 return;
             }
 
-            const importedSchedules = JSON.parse(jsonContent);
-            setSchedules(importedSchedules);
+            const importedData = JSON.parse(jsonContent);
+
+            // Extract scheduleStartDate and schedules from the parsed data
+            if (importedData.scheduleStartDate) {
+                setScheduleStartDate(importedData.scheduleStartDate);
+            } else {
+                setScheduleStartDate(new Date().toISOString().split('T')[0]); // Default to today's date if not provided
+            }
+
+            if (Array.isArray(importedData.schedules)) {
+                setSchedules(importedData.schedules);
+            } else {
+                setSchedules([]); // Reset schedules if invalid or not provided
+            }
         } catch (error) {
             alert('Invalid JSON format. Please check your input and try again.');
         }
+
     };
 
     return (
-        <div className="flex font-sans justify-center items-center p-4 bg-gray-100 overflow-y-auto min-h-screen">
-            <div className="max-w-full flex flex-row justify-center gap-4 flex-wrap p-4 bg-white rounded-lg shadow-md">
-                <div className='max-w-full overflow-auto flex flex-col gap-4'>
-                    <h1 className='text-xl font-semibold'>Crispy's Stream Scheduler</h1>
-                    <div className='flex flex-col items-start w-full'>
-                        <input
-                            type="date"
-                            onChange={(e) => setScheduleStartDate(e.target.value)}
-                            className="block w-full max-w-80 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm mb-8"
-                        />
-                        {scheduleStartDate ?
-                            <div className='flex flex-col items-start w-full'>
-                                <form onSubmit={addSchedule} className="space-y-4 w-full max-w-80">
+        <div className="flex font-sans justify-center p-4 md:p-16 overflow-y-auto min-h-screen">
+
+            <div className='absolute inset-0 -z-20'>
+                <StaticImage className='!absolute inset-0' src="../data/images/channel-offline-image-1920x1080.jpg" alt="Warm, crispy potato tots." />
+                <div className='absolute inset-0 bg-neutral-900/50' />
+            </div>
+
+            <SEOHeader title="Crispy's Stream Scheduler" />
+            <div className="p-4 bg-white rounded-lg shadow-md">
+                <div className='flex flex-col items-center gap-4'>
+                    <div className='w-full flex justify-center gap-4 flex-col md:flex-row'>
+                        <div className='overflow-auto flex flex-col justify-start items-center gap-4 grow w-full'>
+                            <div className='flex flex-col items-center gap-2'>
+                                <h1 className='text-xl md:text-3xl font-semibold'>Crispy's Stream Scheduler</h1>
+                                <div className='flex items-center gap-2'>
+                                    <span className='whitespace-nowrap text-xl'>Week of: </span>
+                                    <input
+                                        type="date"
+                                        value={scheduleStartDate}
+                                        onChange={(e) => {
+                                            setScheduleStartDate(e.target.value)
+                                        }}
+                                        className="text-xl block w-full max-w-80 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-lg"
+                                    />
+                                </div>
+                            </div>
+                            <form onSubmit={addSchedule} className="flex flex-col space-y-4 grow justify-center w-full max-w-96">
+                                <h2 className='text-center text-xl'>Add to Schedule</h2>
+                                <div className='flex gap-2'>
                                     <select
                                         value={day}
                                         onChange={(e) => setDay(e.target.value)}
@@ -403,33 +474,47 @@ const Scheduler: React.FC = () => {
                                         onChange={(e) => { setTime(e.target.value) }}
                                         className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                     />
-                                    <input
-                                        type="text"
-                                        value={game}
-                                        onChange={(e) => setGame(e.target.value)}
-                                        placeholder="Game name"
-                                        required
-                                        className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
-                                        placeholder="(optional) Description"
-                                        className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                    />
-                                    <button
-                                        type="submit"
-                                        className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                    >
-                                        Add to Schedule
-                                    </button>
-                                </form>
-                            </div>
-                            : <p>Pick a Monday on which your schedule will start.</p>}
+                                </div>
+                                <input
+                                    type="text"
+                                    value={game}
+                                    onChange={(e) => setGame(e.target.value)}
+                                    placeholder="Game name"
+                                    required
+                                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-lg"
+                                />
+                                <input
+                                    type="text"
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                    placeholder="(optional) Description"
+                                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-lg"
+                                />
+                                <button
+                                    type="submit"
+                                    className="w-full inline-flex justify-center items-center gap-1 py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                                >
+                                    <PlusCircleIcon className='w-5 h-5' />
+                                    <span>Add</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <div className='grow shrink min-w-96 max-w-[768px] flex flex-col gap-2 bg-neutral-800/30 p-4 rounded-lg'>
+                            <canvas ref={canvasRef} id="scheduleCanvas" className="w-full h-auto"></canvas>
+
+                            <button
+                                onClick={saveCanvasAsImage}
+                                className="w-full inline-flex justify-center items-center gap-1 py-2 px-4 border border-transparent shadow-sm text-lg font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+                            >
+                                <ArrowDownTrayIcon className='w-5 h-5' />
+                                <span>Save Schedule as PNG</span>
+                            </button>
+                        </div>
                     </div>
 
-                    <table className="border-collapse overflow-x-scroll max-w-full">
+
+                    <table className="border-collapse w-full overflow-x-scroll">
                         <thead>
                             <tr>
                                 <th className="px-4 py-2 bg-gray-100">Day</th>
@@ -444,14 +529,14 @@ const Scheduler: React.FC = () => {
                                 <tr key={schedule.id}>
                                     {editingScheduleId === schedule.id ? (
                                         <>
-                                            <td className="border px-4 py-2">
+                                            <td className="border px-4 py-2 max-w-28">
                                                 <select
                                                     value={editedDay}
                                                     onChange={(e) => setEditedDay(e.target.value)}
                                                     required
                                                     className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                                 >
-                                                    <option value="">Select Day of Week</option>
+                                                    <option value="">Day of Week</option>
                                                     <option value="Mon">Monday</option>
                                                     <option value="Tue">Tuesday</option>
                                                     <option value="Wed">Wednesday</option>
@@ -461,7 +546,7 @@ const Scheduler: React.FC = () => {
                                                     <option value="Sun">Sunday</option>
                                                 </select>
                                             </td>
-                                            <td className="border px-4 py-2">
+                                            <td className="border px-4 py-2 max-w-28">
                                                 <input
                                                     type="time"
                                                     value={editedTime}
@@ -491,10 +576,10 @@ const Scheduler: React.FC = () => {
                                         </>
                                     ) : (
                                         <>
-                                            <td className="border px-4 py-2">{schedule.day}</td>
-                                            <td className="border px-4 py-2">{schedule.time}</td>
+                                            <td className="border px-4 py-2 max-w-28">{schedule.day}</td>
+                                            <td className="border px-4 py-2 max-w-28">{schedule.time}</td>
                                             <td className="border px-4 py-2">{schedule.game}</td>
-                                            <td className="border px-4 py-2 max-w-64">{schedule.description}</td>
+                                            <td className="border px-4 py-2">{schedule.description}</td>
                                         </>
                                     )}
                                     <td className="border px-4 py-2 flex gap-2">
@@ -502,7 +587,7 @@ const Scheduler: React.FC = () => {
                                             <>
                                                 <button
                                                     onClick={() => saveScheduleChanges(schedule.id)}
-                                                    className="inline-flex justify-center py-2 px-3 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                                    className="inline-flex justify-center w-full py-2 px-3 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                                                 >
                                                     <CheckIcon className='w-6 h-6' />
                                                 </button>
@@ -511,9 +596,10 @@ const Scheduler: React.FC = () => {
                                             <>
                                                 <button
                                                     onClick={() => editSchedule(schedule.id)}
-                                                    className="inline-flex justify-center py-2 px-3 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                                    className="inline-flex items-center justify-center py-2 px-3 border border-transparent shadow-sm text-md font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 gap-1 focus:ring-indigo-500 w-full"
                                                 >
                                                     <PencilSquareIcon className='w-6 h-6' />
+                                                    Edit
                                                 </button>
                                                 <button
                                                     onClick={() => removeSchedule(schedule.id)}
@@ -529,33 +615,24 @@ const Scheduler: React.FC = () => {
                         </tbody>
                     </table>
 
-                    <div className='flex flex-col gap-2 grow'>
+                    <div className='flex flex-col gap-2 w-full max-w-96'>
                         <textarea
                             ref={importJsonTextareaRef}
-                            className="w-full grow p-2 min-h-32 border border-gray-300 rounded-md shadow-sm text-xs font-mono"
+                            className="w-full p-2 min-h-32 border border-gray-300 rounded-md shadow-sm text-xs font-mono"
                             placeholder="Paste your schedule JSON here..."
                         ></textarea>
 
                         <button
                             onClick={importScheduleFromJSON}
-                            className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            className="w-full inline-flex justify-center items-center gap-0.5 py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2"
                         >
-                            Import Schedule from JSON
+                        <CloudArrowDownIcon className='w-5 h-5' />
+                        <span>Import Schedule from JSON</span>
                         </button>
                     </div>
                 </div>
-
-                <div className='w-full max-w-[768px] flex flex-col gap-2'>
-                    <canvas ref={canvasRef} id="scheduleCanvas" className="w-full h-auto border"></canvas>
-
-                    <button
-                        onClick={saveCanvasAsImage}
-                        className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                        Save Schedule as PNG
-                    </button>
-                </div>
             </div>
+            <Footer />
         </div>
     );
 };
