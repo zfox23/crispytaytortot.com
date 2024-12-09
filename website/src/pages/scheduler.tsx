@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { CheckIcon, PencilSquareIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import { CheckIcon, PencilIcon, PencilSquareIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { ArrowDownTrayIcon, CloudArrowDownIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
 import SEOHeader from '../components/SEOHeader';
 import { Footer } from '../components/Footer';
@@ -76,6 +76,10 @@ const Scheduler: React.FC = () => {
     const [editedGame, setEditedGame] = useState('');
     const [editedDescription, setEditedDescription] = useState('');
 
+    const dayInputRef = useRef<HTMLSelectElement | null>(null);
+    const timeInputRef = useRef<HTMLInputElement | null>(null);
+    const gameInputRef = useRef<HTMLInputElement | null>(null);
+    const descriptionInputRef = useRef<HTMLInputElement | null>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const importJsonTextareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -105,7 +109,6 @@ const Scheduler: React.FC = () => {
 
     useEffect(() => {
         const nextMonday = getNextMonday();
-        console.log(nextMonday)
         setScheduleStartDate(nextMonday);
     }, [])
 
@@ -128,13 +131,13 @@ const Scheduler: React.FC = () => {
 
     const editSchedule = (id: string) => {
         const scheduleToEdit = schedules.find((schedule) => schedule.id === id);
-        if (scheduleToEdit) {
-            setEditingScheduleId(id);
-            setEditedDay(scheduleToEdit.day);
-            setEditedTime(scheduleToEdit.time || "");
-            setEditedGame(scheduleToEdit.game);
-            setEditedDescription(scheduleToEdit.description || "");
-        }
+        if (!scheduleToEdit) return;
+
+        setEditingScheduleId(id);
+        setEditedDay(scheduleToEdit.day);
+        setEditedTime(scheduleToEdit.time || "");
+        setEditedGame(scheduleToEdit.game);
+        setEditedDescription(scheduleToEdit.description || "");
     };
 
     const removeSchedule = (id: string) => {
@@ -145,7 +148,13 @@ const Scheduler: React.FC = () => {
         setSchedules((prevSchedules) =>
             prevSchedules.map((schedule) =>
                 schedule.id === id
-                    ? { ...schedule, day: editedDay, time: editedTime, game: editedGame, description: editedDescription }
+                    ? {
+                        ...schedule,
+                        day: editedDay,
+                        time: editedTime,
+                        game: editedGame,
+                        description: editedDescription
+                    }
                     : schedule
             )
         );
@@ -259,6 +268,8 @@ const Scheduler: React.FC = () => {
         canvas.width = 1000;
         canvas.height = 1000;
 
+        ctx.imageSmoothingQuality = "high";
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (bgImage.complete) {
             ctx.drawImage(bgImage, 0, 0);
@@ -305,7 +316,6 @@ const Scheduler: React.FC = () => {
             if (currentDay !== sortedSchedules[i].day) {
                 currentDay = sortedSchedules[i].day;
                 numCurrentDays = sortedSchedules.filter((s) => { return s.day === currentDay; }).length;
-                console.log(currentDay, numCurrentDays)
 
                 ctx.fillStyle = "#000000AA";
                 ctx.beginPath();
@@ -424,7 +434,7 @@ const Scheduler: React.FC = () => {
     };
 
     return (
-        <div className="flex font-sans justify-center p-4 md:p-16 overflow-y-auto min-h-screen">
+        <div className="flex font-sans justify-center p-2 md:p-16 pb-20 overflow-y-auto min-h-screen relative max-w-full">
 
             <div className='absolute inset-0 -z-20'>
                 <StaticImage className='!absolute inset-0' src="../data/images/channel-offline-image-1920x1080.jpg" alt="Warm, crispy potato tots." />
@@ -432,206 +442,237 @@ const Scheduler: React.FC = () => {
             </div>
 
             <SEOHeader title="Crispy's Stream Scheduler" />
-            <div className="p-4 bg-white rounded-lg shadow-md">
-                <div className='flex flex-col items-center gap-4'>
-                    <div className='w-full flex justify-center gap-4 flex-col md:flex-row'>
-                        <div className='overflow-auto flex flex-col justify-start items-center gap-4 grow w-full'>
-                            <div className='flex flex-col items-center gap-2'>
-                                <h1 className='text-xl md:text-3xl font-semibold'>Crispy's Stream Scheduler</h1>
-                                <div className='flex items-center gap-2'>
-                                    <span className='whitespace-nowrap text-xl'>Week of: </span>
-                                    <input
-                                        type="date"
-                                        value={scheduleStartDate}
-                                        onChange={(e) => {
-                                            setScheduleStartDate(e.target.value)
-                                        }}
-                                        className="text-xl block w-full max-w-80 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-lg"
-                                    />
-                                </div>
+            <div className="p-2 md:p-4 max-w-full flex flex-col items-center gap-4 bg-white rounded-lg shadow-md">
+                <div className='w-full flex justify-center gap-4 flex-col md:flex-row'>
+                    <div className='overflow-auto flex flex-col justify-start items-center gap-4 grow w-full'>
+                        <div className='flex flex-col items-center gap-2'>
+                            <h1 className='text-2xl md:text-3xl font-semibold'>Crispy's Stream Scheduler</h1>
+                            <div className='flex items-center gap-2'>
+                                <span className='whitespace-nowrap text-xl'>Week of: </span>
+                                <input
+                                    type="date"
+                                    value={scheduleStartDate}
+                                    onChange={(e) => {
+                                        setScheduleStartDate(e.target.value)
+                                    }}
+                                    className="text-xl block w-full max-w-80 px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                />
                             </div>
-                            <form onSubmit={addSchedule} className="flex flex-col space-y-4 grow justify-center w-full max-w-96">
-                                <h2 className='text-center text-xl'>Add to Schedule</h2>
-                                <div className='flex gap-2'>
-                                    <select
-                                        value={day}
-                                        onChange={(e) => setDay(e.target.value)}
-                                        required
-                                        className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                    >
-                                        <option value="">Day of Week</option>
-                                        <option value="Mon">Monday</option>
-                                        <option value="Tue">Tuesday</option>
-                                        <option value="Wed">Wednesday</option>
-                                        <option value="Thu">Thursday</option>
-                                        <option value="Fri">Friday</option>
-                                        <option value="Sat">Saturday</option>
-                                        <option value="Sun">Sunday</option>
-                                    </select>
-                                    <input
-                                        type="time"
-                                        value={time}
-                                        onChange={(e) => { setTime(e.target.value) }}
-                                        className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                    />
-                                </div>
-                                <input
-                                    type="text"
-                                    value={game}
-                                    onChange={(e) => setGame(e.target.value)}
-                                    placeholder="Game name"
+                        </div>
+                        <form onSubmit={addSchedule} className="flex flex-col space-y-4 grow justify-center w-full md:max-w-96">
+                            <h2 className='text-center text-xl'>Add to Schedule</h2>
+                            <div className='flex gap-2 !mt-2'>
+                                <select
+                                    value={day}
+                                    onChange={(e) => setDay(e.target.value)}
                                     required
-                                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-lg"
-                                />
-                                <input
-                                    type="text"
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    placeholder="(optional) Description"
-                                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-lg"
-                                />
-                                <button
-                                    type="submit"
-                                    className="w-full inline-flex justify-center items-center gap-1 py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                                    className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 >
-                                    <PlusCircleIcon className='w-5 h-5' />
-                                    <span>Add</span>
-                                </button>
-                            </form>
-                        </div>
-
-                        <div className='grow shrink min-w-96 max-w-[768px] flex flex-col gap-2 bg-neutral-800/30 p-4 rounded-lg'>
-                            <canvas ref={canvasRef} id="scheduleCanvas" className="w-full h-auto"></canvas>
-
+                                    <option value="">Day of Week</option>
+                                    <option value="Mon">Monday</option>
+                                    <option value="Tue">Tuesday</option>
+                                    <option value="Wed">Wednesday</option>
+                                    <option value="Thu">Thursday</option>
+                                    <option value="Fri">Friday</option>
+                                    <option value="Sat">Saturday</option>
+                                    <option value="Sun">Sunday</option>
+                                </select>
+                                <input
+                                    type="time"
+                                    value={time}
+                                    onChange={(e) => { setTime(e.target.value) }}
+                                    className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                />
+                            </div>
+                            <input
+                                type="text"
+                                value={game}
+                                onChange={(e) => setGame(e.target.value)}
+                                placeholder="Game name"
+                                required
+                                className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-lg"
+                            />
+                            <input
+                                type="text"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                placeholder="(optional) Description"
+                                className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-lg"
+                            />
                             <button
-                                onClick={saveCanvasAsImage}
-                                className="w-full inline-flex justify-center items-center gap-1 py-2 px-4 border border-transparent shadow-sm text-lg font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+                                type="submit"
+                                className="w-full inline-flex justify-center items-center gap-1 py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2"
                             >
-                                <ArrowDownTrayIcon className='w-5 h-5' />
-                                <span>Save Schedule as PNG</span>
+                                <PlusCircleIcon className='w-5 h-5' />
+                                <span>Add</span>
                             </button>
-                        </div>
+                        </form>
                     </div>
 
-
-                    <table className="border-collapse w-full overflow-x-scroll">
-                        <thead>
-                            <tr>
-                                <th className="px-4 py-2 bg-gray-100">Day</th>
-                                <th className="px-4 py-2 bg-gray-100">Time</th>
-                                <th className="px-4 py-2 bg-gray-100">Game</th>
-                                <th className="px-4 py-2 bg-gray-100">Description</th>
-                                <th className="px-4 py-2 bg-gray-100">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sortSchedules(schedules).map((schedule) => (
-                                <tr key={schedule.id}>
-                                    {editingScheduleId === schedule.id ? (
-                                        <>
-                                            <td className="border px-4 py-2 max-w-28">
-                                                <select
-                                                    value={editedDay}
-                                                    onChange={(e) => setEditedDay(e.target.value)}
-                                                    required
-                                                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                                >
-                                                    <option value="">Day of Week</option>
-                                                    <option value="Mon">Monday</option>
-                                                    <option value="Tue">Tuesday</option>
-                                                    <option value="Wed">Wednesday</option>
-                                                    <option value="Thu">Thursday</option>
-                                                    <option value="Fri">Friday</option>
-                                                    <option value="Sat">Saturday</option>
-                                                    <option value="Sun">Sunday</option>
-                                                </select>
-                                            </td>
-                                            <td className="border px-4 py-2 max-w-28">
-                                                <input
-                                                    type="time"
-                                                    value={editedTime}
-                                                    onChange={(e) => setEditedTime(e.target.value)}
-                                                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                                />
-                                            </td>
-                                            <td className="border px-4 py-2">
-                                                <input
-                                                    type="text"
-                                                    value={editedGame}
-                                                    onChange={(e) => setEditedGame(e.target.value)}
-                                                    required
-                                                    placeholder="Enter game name"
-                                                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                                />
-                                            </td>
-                                            <td className="border px-4 py-2">
-                                                <input
-                                                    type="text"
-                                                    value={editedDescription}
-                                                    onChange={(e) => setEditedDescription(e.target.value)}
-                                                    placeholder="(optional) Enter description"
-                                                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                                />
-                                            </td>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <td className="border px-4 py-2 max-w-28">{schedule.day}</td>
-                                            <td className="border px-4 py-2 max-w-28">{schedule.time}</td>
-                                            <td className="border px-4 py-2">{schedule.game}</td>
-                                            <td className="border px-4 py-2">{schedule.description}</td>
-                                        </>
-                                    )}
-                                    <td className="border px-4 py-2 flex gap-2">
-                                        {editingScheduleId === schedule.id ? (
-                                            <>
-                                                <button
-                                                    onClick={() => saveScheduleChanges(schedule.id)}
-                                                    className="inline-flex justify-center w-full py-2 px-3 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                                                >
-                                                    <CheckIcon className='w-6 h-6' />
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <button
-                                                    onClick={() => editSchedule(schedule.id)}
-                                                    className="inline-flex items-center justify-center py-2 px-3 border border-transparent shadow-sm text-md font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 gap-1 focus:ring-indigo-500 w-full"
-                                                >
-                                                    <PencilSquareIcon className='w-6 h-6' />
-                                                    Edit
-                                                </button>
-                                                <button
-                                                    onClick={() => removeSchedule(schedule.id)}
-                                                    className="inline-flex justify-center py-2 px-3 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                                                >
-                                                    <TrashIcon className='w-6 h-6' />
-                                                </button>
-                                            </>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-
-                    <div className='flex flex-col gap-2 w-full max-w-96'>
-                        <textarea
-                            ref={importJsonTextareaRef}
-                            className="w-full p-2 min-h-32 border border-gray-300 rounded-md shadow-sm text-xs font-mono"
-                            placeholder="Paste your schedule JSON here..."
-                        ></textarea>
+                    <div className='grow shrink min-w-64 max-w-[768px] flex flex-col gap-2 bg-neutral-800/30 p-4 rounded-lg'>
+                        <canvas ref={canvasRef} id="scheduleCanvas" className="w-full h-auto"></canvas>
 
                         <button
-                            onClick={importScheduleFromJSON}
-                            className="w-full inline-flex justify-center items-center gap-0.5 py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                            onClick={saveCanvasAsImage}
+                            className="w-full inline-flex justify-center items-center gap-1 py-2 px-4 border border-transparent shadow-sm text-lg font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
                         >
-                        <CloudArrowDownIcon className='w-5 h-5' />
-                        <span>Import Schedule from JSON</span>
+                            <ArrowDownTrayIcon className='w-5 h-5' />
+                            <span>Save as PNG</span>
                         </button>
                     </div>
                 </div>
+
+
+                <table className="border-collapse w-full overflow-x-auto table-fixed">
+                    <thead className='text-sm md:text-base'>
+                        <tr>
+                            <th className={`px-2 py-1 md:px-4 md:py-2 bg-gray-100 ${editingScheduleId ? 'w-28 md:w-48 text-xs md:text-base' : 'w-12 md:w-16'}`}>Day</th>
+                            <th className={`px-2 py-1 md:px-4 md:py-2 bg-gray-100 ${editingScheduleId ? 'w-24 md:w-40 text-xs md:text-base' : 'w-16 md:w-20'}`}>Time</th>
+                            <th className="px-2 py-1 md:px-4 md:py-2 bg-gray-100">Game</th>
+                            <th className="px-2 py-1 md:px-4 md:py-2 bg-gray-100">Description</th>
+                            <th className="px-2 py-1 md:px-4 md:py-2 bg-gray-100 w-12 md:w-16"></th>
+                        </tr>
+                    </thead>
+                    <tbody className='text-sm md:text-base'>
+                        {sortSchedules(schedules).map((schedule) => (
+                            <tr key={schedule.id}>
+                                {editingScheduleId === schedule.id ? (
+                                    <>
+                                        <td className="border px-2 py-1 md:px-4 md:py-2 text-xs md:text-base">
+                                            <select
+                                                value={editedDay}
+                                                onChange={(e) => setEditedDay(e.target.value)}
+                                                required
+                                                className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                                ref={dayInputRef}
+                                            >
+                                                <option value="">Day of Week</option>
+                                                <option value="Mon">Monday</option>
+                                                <option value="Tue">Tuesday</option>
+                                                <option value="Wed">Wednesday</option>
+                                                <option value="Thu">Thursday</option>
+                                                <option value="Fri">Friday</option>
+                                                <option value="Sat">Saturday</option>
+                                                <option value="Sun">Sunday</option>
+                                            </select>
+                                        </td>
+                                        <td className="border px-2 py-1 md:px-4 md:py-2 text-xs md:text-base">
+                                            <input
+                                                type="time"
+                                                value={editedTime}
+                                                onChange={(e) => setEditedTime(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        e.preventDefault(); // Prevent any default behavior like form submission
+                                                        saveScheduleChanges(schedule.id);
+                                                    }
+                                                }}
+                                                className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                                ref={timeInputRef}
+                                            />
+                                        </td>
+                                        <td className="border px-2 py-1 md:px-4 md:py-2">
+                                            <input
+                                                type="text"
+                                                value={editedGame}
+                                                onChange={(e) => setEditedGame(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        e.preventDefault(); // Prevent any default behavior like form submission
+                                                        saveScheduleChanges(schedule.id);
+                                                    }
+                                                }}
+                                                required
+                                                placeholder="Enter game name"
+                                                className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                                ref={gameInputRef}
+                                            />
+                                        </td>
+                                        <td className="border px-2 py-1 md:px-4 md:py-2">
+                                            <input
+                                                type="text"
+                                                value={editedDescription}
+                                                onChange={(e) => setEditedDescription(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        e.preventDefault(); // Prevent any default behavior like form submission
+                                                        saveScheduleChanges(schedule.id);
+                                                    }
+                                                }}
+                                                placeholder="(optional) Enter description"
+                                                className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                                ref={descriptionInputRef}
+                                            />
+                                        </td>
+                                    </>
+                                ) : (
+                                    <>
+                                        <td className="border px-2 py-1 md:px-4 md:py-2 text-center relative group cursor-pointer" onClick={() => {
+                                            editSchedule(schedule.id);
+                                            setTimeout(() => dayInputRef.current?.focus(), 0);
+                                        }}>
+                                            <span className='group-hover:blur-sm'>{schedule.day}</span>
+                                            <PencilIcon className='w-8 h-8 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 hidden group-hover:block bg-indigo-700/90 rounded-md p-2 text-white' />
+                                        </td>
+                                        <td className="border px-2 py-1 md:px-4 md:py-2 text-center relative group cursor-pointer" onClick={() => {
+                                            editSchedule(schedule.id);
+                                            setTimeout(() => timeInputRef.current?.focus(), 0);
+                                        }}>
+                                            <span className='group-hover:blur-sm'>{schedule.time}</span>
+                                            <PencilIcon className='w-8 h-8 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 hidden group-hover:block bg-indigo-700/90 rounded-md p-2 text-white' /></td>
+                                        <td className="border px-2 py-1 md:px-4 md:py-2 relative group cursor-pointer" onClick={() => {
+                                            editSchedule(schedule.id);
+                                            setTimeout(() => gameInputRef.current?.focus(), 0);
+                                        }}>
+                                            <span className='group-hover:blur-sm'>{schedule.game}</span>
+                                            <PencilIcon className='w-8 h-8 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 hidden group-hover:block bg-indigo-700/90 rounded-md p-2 text-white' /></td>
+                                        <td className="border px-2 py-1 md:px-4 md:py-2 break-all relative group cursor-pointer" onClick={() => {
+                                            editSchedule(schedule.id);
+                                            setTimeout(() => descriptionInputRef.current?.focus(), 0);
+                                        }}>
+                                            <span className='group-hover:blur-sm'>{schedule.description}</span>
+                                            <PencilIcon className='w-8 h-8 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 hidden group-hover:block bg-indigo-700/90 rounded-md p-2 text-white' /></td>
+                                    </>
+                                )}
+                                <td className="border px-2 py-2">
+                                    {editingScheduleId === schedule.id ? (
+                                        <button
+                                            onClick={() => saveScheduleChanges(schedule.id)}
+                                            className="inline-flex justify-center py-1 px-1.5 md:py-2 md:px-3 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                        >
+                                            <CheckIcon className='w-5 h-5 md:w-6 md:h-6' />
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={() => removeSchedule(schedule.id)}
+                                            className="inline-flex justify-center py-1 px-1.5 md:py-2 md:px-3 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                        >
+                                            <TrashIcon className='w-5 h-5 md:w-6 md:h-6' />
+                                        </button>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+
+                <div className='flex flex-col gap-2 w-full md:max-w-96 grow'>
+                    <textarea
+                        ref={importJsonTextareaRef}
+                        className="w-full p-2 min-h-32 border border-gray-300 rounded-md shadow-sm text-xs font-mono grow"
+                        placeholder="Paste your schedule JSON here..."
+                    ></textarea>
+
+                    <button
+                        onClick={importScheduleFromJSON}
+                        className="w-full inline-flex justify-center items-center gap-0.5 py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                    >
+                        <CloudArrowDownIcon className='w-5 h-5' />
+                        <span>Import Schedule from JSON</span>
+                    </button>
+                </div>
             </div>
+
             <Footer />
         </div>
     );
