@@ -1,5 +1,4 @@
 const defaultTheme = require('tailwindcss/defaultTheme');
-const { rootCertificates } = require('tls');
 
 module.exports = {
   content: [

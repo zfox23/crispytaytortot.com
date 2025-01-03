@@ -1,3 +1,3 @@
 .env
-src/userAccessToken.json
+src/twitch/userAccessToken.json
 db

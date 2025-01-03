@@ -186,7 +186,7 @@ const Scheduler: React.FC = () => {
 
         try {
             // Fetch game details from the proxy server
-            const response = await fetch(`/api/search-game?gameName=${encodeURIComponent(gameName)}`);
+            const response = await fetch(`/api/v1/steam/search-game?gameName=${encodeURIComponent(gameName)}`);
             let responseJSON = await response.json();
 
             if (!(responseJSON && responseJSON.iconUrl)) {

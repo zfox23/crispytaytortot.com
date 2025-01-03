@@ -9,8 +9,8 @@ export const Layout = ({ children, showAttribution = true, desktopClassList = ""
             <Helmet htmlAttributes={{
                 lang: 'en',
             }} />
-            <div className='relative flex flex-col min-h-screen'>
-                {/* <Header desktopClassList={desktopClassList} mobileClassList={mobileClassList} /> */}
+            <div className='relative flex flex-col min-h-screen dark'>
+                <Header desktopClassList={desktopClassList} mobileClassList={mobileClassList} />
                 <main className="grow flex flex-col items-center bg-neutral-800 relative">
                     {children}
                 </main>

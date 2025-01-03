@@ -1,9 +1,11 @@
+import { Link } from 'gatsby';
 import React from 'react';
+import { twMerge } from 'tailwind-merge';
 
-export const SpinningBorderedTot = () => {
+export const SpinningBorderedTot = ({imgClassName = ''}) => {
     return (
-        <a className='rounded-full cursor-pointer p-1 border-2 border-solid bg-neutral-900/90 group border-indigo-800 w-24 h-24 relative mx-auto overflow-clip flex items-center justify-center' href="/">
-            <img className='group-hover:animate-spin p-4' loading='eager' src="/images/Totmoji.png" alt="CrispyTaytortot's avatar is a cartoon tater tot with eyes and a happy expression." />
-        </a>
+        <Link className='rounded-full cursor-pointer p-1 group relative mx-auto overflow-clip flex items-center justify-center' to="/">
+            <img className={twMerge('group-hover:animate-spin w-8 h-auto', imgClassName)} loading='eager' src="/images/Totmoji.png" alt="CrispyTaytortot's avatar is a cartoon tater tot with eyes and a happy expression." />
+        </Link>
     )
 }
