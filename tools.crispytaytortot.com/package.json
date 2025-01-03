@@ -1,0 +1,35 @@
+{
+  "name": "tools.crispytaytortot.com",
+  "version": "0.0.1",
+  "private": true,
+  "description": "",
+  "scripts": {
+    "develop": "gatsby develop -p 8001 -H 0.0.0.0",
+    "start": "gatsby develop -p 8001",
+    "build": "gatsby build",
+    "serve": "gatsby serve -p 9001",
+    "clean": "gatsby clean",
+    "update-all-latest": "ncu"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zfox23/crispytaytortot.com.git"
+  },
+  "author": "Zach Fox",
+  "license": "UNLICENSED",
+  "homepage": "https://github.com/zfox23/crispytaytortot.com#readme",
+  "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "gatsby": "^5.14.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "autoprefixer": "^10.4.20",
+    "gatsby-plugin-postcss": "^6.14.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17"
+  }
+}
