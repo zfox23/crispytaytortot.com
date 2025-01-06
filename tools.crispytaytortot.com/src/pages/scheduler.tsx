@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { CheckIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { ArrowDownTrayIcon, CloudArrowDownIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
 import SEOHeader from '../components/SEOHeader';
-import { Footer } from '../../../../crispytaytortot.com/website/src/components/Footer';
-import { Background } from '../../../../crispytaytortot.com/website/src/components/Background';
+import { Footer } from '../../../crispytaytortot.com/src/components/Footer';
+import { Background } from '../../../crispytaytortot.com/src/components/Background';
 
 interface ScheduleItem {
     id: string;
@@ -434,17 +434,15 @@ const Scheduler: React.FC = () => {
     };
 
     return (
-        <div className="flex font-sans justify-center p-2 md:p-16 pb-20 overflow-y-auto min-h-screen relative max-w-full bg-neutral-900/50">
+        <div className="flex font-sans justify-center p-2 md:p-16 pb-20 overflow-y-auto min-h-screen relative max-w-full bg-neutral-900/50 dark">
             <SEOHeader title="Crispy's Stream Scheduler" />
             <Background />
 
-            <Footer />
-
-            <div className="p-2 md:p-4 max-w-full flex flex-col items-center gap-4 bg-white rounded-lg shadow-md relative">
+            <div className="p-2 md:p-4 max-w-full flex flex-col items-center gap-4 bg-white/75 dark:bg-transparent backdrop-blur-lg backdrop-brightness-50 text-neutral-900 dark:text-slate-50 rounded-lg shadow-md relative">
                 <div className='w-full flex justify-center gap-4 flex-col md:flex-row'>
                     <div className='overflow-auto flex flex-col justify-start items-center gap-4 grow w-full'>
                         <div className='flex flex-col items-center gap-2'>
-                            <h1 className='text-2xl md:text-3xl font-semibold'>Crispy's Stream Scheduler</h1>
+                            <h1 className='text-2xl md:text-3xl font-semibold text-center'>Crispy's Stream Scheduler</h1>
                             <div className='flex items-center gap-2'>
                                 <span className='whitespace-nowrap text-xl'>Week of: </span>
                                 <input
@@ -453,7 +451,7 @@ const Scheduler: React.FC = () => {
                                     onChange={(e) => {
                                         setScheduleStartDate(e.target.value)
                                     }}
-                                    className="text-xl block w-full max-w-80 px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                    className="text-xl block w-full max-w-80 px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-gray-100 dark:bg-gray-800 text-black dark:text-white"
                                 />
                             </div>
                         </div>
@@ -464,7 +462,7 @@ const Scheduler: React.FC = () => {
                                     value={day}
                                     onChange={(e) => setDay(e.target.value)}
                                     required
-                                    className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-100 dark:bg-gray-800 text-black dark:text-white"
                                 >
                                     <option value="">Day of Week</option>
                                     <option value="Mon">Monday</option>
@@ -479,7 +477,7 @@ const Scheduler: React.FC = () => {
                                     type="time"
                                     value={time}
                                     onChange={(e) => { setTime(e.target.value) }}
-                                    className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-100 dark:bg-gray-800 text-black dark:text-white"
                                 />
                             </div>
                             <input
@@ -488,14 +486,14 @@ const Scheduler: React.FC = () => {
                                 onChange={(e) => setGame(e.target.value)}
                                 placeholder="Game name"
                                 required
-                                className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-lg"
+                                className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-lg bg-gray-100 dark:bg-gray-800 text-black dark:text-white"
                             />
                             <input
                                 type="text"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 placeholder="(optional) Description"
-                                className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-lg"
+                                className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-lg bg-gray-100 dark:bg-gray-800 text-black dark:text-white"
                             />
                             <button
                                 type="submit"
@@ -507,7 +505,7 @@ const Scheduler: React.FC = () => {
                         </form>
                     </div>
 
-                    <div className='grow shrink min-w-64 max-w-[768px] flex flex-col gap-2 bg-neutral-800/30 p-4 rounded-lg'>
+                    <div className='grow shrink min-w-64 max-w-[768px] flex flex-col gap-2 bg-neutral-800/30 dark:bg-neutral-800/80 p-4 rounded-lg'>
                         <canvas ref={canvasRef} id="scheduleCanvas" className="w-full h-auto"></canvas>
 
                         <button
@@ -524,11 +522,11 @@ const Scheduler: React.FC = () => {
                 <table className="border-collapse w-full overflow-x-auto table-fixed">
                     <thead className='text-sm md:text-base'>
                         <tr>
-                            <th className={`px-2 py-1 md:px-4 md:py-2 bg-gray-100 ${editingScheduleId ? 'w-28 md:w-48 text-xs md:text-base' : 'w-12 md:w-16'}`}>Day</th>
-                            <th className={`px-2 py-1 md:px-4 md:py-2 bg-gray-100 ${editingScheduleId ? 'w-24 md:w-40 text-xs md:text-base' : 'w-16 md:w-20'}`}>Time</th>
-                            <th className="px-2 py-1 md:px-4 md:py-2 bg-gray-100">Game</th>
-                            <th className="px-2 py-1 md:px-4 md:py-2 bg-gray-100">Description</th>
-                            <th className="px-2 py-1 md:px-4 md:py-2 bg-gray-100 w-12 md:w-16"></th>
+                            <th className={`px-2 py-1 md:px-4 md:py-2 bg-gray-100 dark:bg-gray-800 ${editingScheduleId ? 'w-28 md:w-48 text-xs md:text-base' : 'w-12 md:w-16'}`}>Day</th>
+                            <th className={`px-2 py-1 md:px-4 md:py-2 bg-gray-100 dark:bg-gray-800 ${editingScheduleId ? 'w-24 md:w-40 text-xs md:text-base' : 'w-16 md:w-20'}`}>Time</th>
+                            <th className="px-2 py-1 md:px-4 md:py-2 bg-gray-100 dark:bg-gray-800">Game</th>
+                            <th className="px-2 py-1 md:px-4 md:py-2 bg-gray-100 dark:bg-gray-800">Description</th>
+                            <th className="px-2 py-1 md:px-4 md:py-2 bg-gray-100 dark:bg-gray-800 w-12 md:w-16"></th>
                         </tr>
                     </thead>
                     <tbody className='text-sm md:text-base'>
@@ -541,7 +539,7 @@ const Scheduler: React.FC = () => {
                                                 value={editedDay}
                                                 onChange={(e) => setEditedDay(e.target.value)}
                                                 required
-                                                className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                                className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-gray-100 dark:bg-gray-800 text-black dark:text-white"
                                                 ref={dayInputRef}
                                             >
                                                 <option value="">Day of Week</option>
@@ -565,7 +563,7 @@ const Scheduler: React.FC = () => {
                                                         saveScheduleChanges(schedule.id);
                                                     }
                                                 }}
-                                                className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                                className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-100 dark:bg-gray-800 text-black dark:text-white"
                                                 ref={timeInputRef}
                                             />
                                         </td>
@@ -582,7 +580,7 @@ const Scheduler: React.FC = () => {
                                                 }}
                                                 required
                                                 placeholder="Enter game name"
-                                                className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                                className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-100 dark:bg-gray-800 text-black dark:text-white"
                                                 ref={gameInputRef}
                                             />
                                         </td>
@@ -598,7 +596,7 @@ const Scheduler: React.FC = () => {
                                                     }
                                                 }}
                                                 placeholder="(optional) Enter description"
-                                                className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                                className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-100 dark:bg-gray-800 text-black dark:text-white"
                                                 ref={descriptionInputRef}
                                             />
                                         </td>
@@ -657,7 +655,7 @@ const Scheduler: React.FC = () => {
                 <div className='flex flex-col gap-2 w-full md:max-w-96 grow'>
                     <textarea
                         ref={importJsonTextareaRef}
-                        className="w-full p-2 min-h-32 border border-gray-300 rounded-md shadow-sm text-xs font-mono grow"
+                        className="w-full p-2 min-h-32 border border-gray-300 bg-gray-100 dark:bg-gray-800 text-black dark:text-white rounded-md shadow-sm text-xs font-mono grow"
                         placeholder="Paste your schedule JSON here..."
                     ></textarea>
 
@@ -670,6 +668,8 @@ const Scheduler: React.FC = () => {
                     </button>
                 </div>
             </div>
+
+            <Footer />
         </div>
     );
 };

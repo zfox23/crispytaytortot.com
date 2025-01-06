@@ -1,8 +1,8 @@
 import React from 'react';
-import { Layout } from "../../../../crispytaytortot.com/website/src/components/Layout";
+import { Layout } from "../../../crispytaytortot.com/src/components/Layout";
 import SEOHeader from '../components/SEOHeader';
-import { Background } from '../../../../crispytaytortot.com/website/src/components/Background';
-import { SpinningBorderedTot } from '../../../../crispytaytortot.com/website/src/components/SpinningBorderedTot';
+import { Background } from '../../../crispytaytortot.com/src/components/Background';
+import { SpinningBorderedTot } from '../../../crispytaytortot.com/src/components/SpinningBorderedTot';
 
 const FourOhFourPage = ({ }) => {
     return (
