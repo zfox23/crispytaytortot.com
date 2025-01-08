@@ -95,7 +95,7 @@ const Scheduler: React.FC = () => {
     }, [scheduleImportStartDate]);
 
     useEffect(() => {
-        if (!passwordInputRef.current) return;
+        if (!(isBrowser && passwordInputRef.current)) return;
 
         const storedPassword = localStorage.getItem('crispyDBPassword');
         if (storedPassword) {
@@ -532,9 +532,9 @@ const Scheduler: React.FC = () => {
                 console.log('Authorized successfully:', result);
                 setIsAuthorized(true);
 
-                if (rememberMe) {
+                if (isBrowser && rememberMe) {
                     localStorage.setItem('crispyDBPassword', password);
-                } else {
+                } else if (isBrowser) {
                     localStorage.removeItem('crispyDBPassword');
                 }
             } else {
@@ -866,7 +866,7 @@ const Scheduler: React.FC = () => {
                             type="password"
                             placeholder="Password"
                             required={true}
-                            defaultValue={localStorage.getItem('crispyDBPassword') || ''}
+                            defaultValue={isBrowser && localStorage.getItem('crispyDBPassword') || ''}
                             className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 disabled:border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-100 disabled:dark:bg-gray-500 dark:bg-gray-800 disabled:text-white/50 text-black dark:text-white mb-2"
                         />
                         <div className='flex flex-col gap-2'>
