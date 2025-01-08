@@ -4,6 +4,7 @@ const defaultTheme = require('tailwindcss/defaultTheme');
 module.exports = {
   content: [
     "../crispytaytortot.com/src/**/*.{js,jsx,ts,tsx}",
+    "../shared/src/**/*.{js,jsx,ts,tsx}",
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
 

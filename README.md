@@ -1,14 +1,24 @@
 # crispytaytortot.com
 CrispyTaytortot's Website and more!
 
-# `Branding` Folder
+## `Branding` Folder
 Assets associated with branding, including color schemes, logos, and other images.
 
-# `website` Folder
+## `crispytaytortot.com` Folder
 The code associated with https://crispytaytortot.com.
 
-## How to Run the Website Locally
-### Prerequisites
+## `tools.crispytaytortot.com` Folder
+The code associated with https://tools.crispytaytortot.com.
+
+## `server` Folder
+The backend code associated with all *.crispytaytortot.com sites.
+
+# Assumptions
+- The frontend code assumes that if Crispy is live on Twitch he is also live on YouTube.
+- The `schedule.sqlite` SQLite database hosted on the server is the source of truth for Crispy's stream schedule. We assume that the IDs of each schedule item stored in the CrispyDB are stable. These schedule items and their IDs are created by [Crispy's Stream Scheduler tool](https://tools.crispytaytortot.com/scheduler/).
+
+# How to Run the Website Locally
+## Prerequisites
 - [NodeJS v18](https://nodejs.org/en/download/)
     - I'm using NodeJS v18.12.1
 - Your favorite code editor
@@ -16,7 +26,7 @@ The code associated with https://crispytaytortot.com.
 - [Git](https://git-scm.com/download/)
 - A [GitHub](https://github.com) account
 
-### Steps
+## Steps
 1. Using Git Shell or Windows Terminal, clone this repository to your local disk with:
     
     ```git clone git@github.com:zfox23/crispytaytortot.com.git```
@@ -35,10 +45,8 @@ Now, you should be able to visit [https://localhost:8000](https://localhost:8000
 
 Any changes you make to the site locally will be immediately reflected in the browser; you don't need to refresh the page to see your changes.
 
-## About
+# About
 The website employs three main technologies:
 1. [React](https://reactjs.org/)
 2. [Gatsby](https://gatsbyjs.com/)
 3. [TailwindCSS](https://tailwindcss.com/)
-
-
