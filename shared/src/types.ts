@@ -4,15 +4,24 @@ export interface ScheduleItem {
     time?: string;
     game: string;
     description?: string;
-    iconUrl?: string; // Store the icon URL
+    iconUrl?: string;
 }
 
-export interface ScheduleUpdatePayload {
+export interface AuthorizePayload {
+    password: string
+}
+
+export interface SetSchedulePayload {
     schedules: ScheduleItem[],
     password: string
 }
 
-export interface ScheduleImportPayload {
+export interface DeleteScheduleItemPayload {
+    id: string,
+    password: string
+}
+
+export interface GetSchedulePayload {
     scheduleStartDate: string,
     password: string
 }

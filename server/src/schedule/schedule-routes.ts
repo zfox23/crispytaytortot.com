@@ -1,8 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
-import { ScheduleImportPayload, ScheduleItem, ScheduleUpdatePayload } from '../../../shared/src/types';
-import { translateScheduleItemIntoISOTime } from '../../../shared/src/shared';
+import { AuthorizePayload, DeleteScheduleItemPayload, GetSchedulePayload, ScheduleItem, SetSchedulePayload } from '../../../shared/src/types';
 import { db } from '../database/db';
 dotenv.config();
 const scheduleRouter = express.Router();
@@ -17,15 +16,34 @@ if (!SCHEDULE_SECRET_PASSWORD) {
 const saltRounds = 10;
 const hashedSecretPassword = bcrypt.hashSync(SCHEDULE_SECRET_PASSWORD, saltRounds);
 
+
+scheduleRouter.post('/authorize', async (req, res) => {
+    const payload: AuthorizePayload = req.body;
+
+    if (!(payload && payload.password)) {
+        return res.status(400).send('Invalid payload');
+    }
+
+    const password = payload.password;
+    // Perform password validation here
+    const isPasswordValid = await bcrypt.compare(password, hashedSecretPassword);
+
+    if (isPasswordValid) {
+        return res.status(200).send("Authorized");
+    } else {
+        console.warn(`Someone at ${req.ip} tried and failed to authorize.`);
+        return res.status(401).send('Unauthorized');
+    }
+})
+
 scheduleRouter.post('/get', async (req, res) => {
-    const payload: ScheduleImportPayload = req.body;
+    const payload: GetSchedulePayload = req.body;
 
     if (!(payload && payload.scheduleStartDate)) {
         return res.status(400).send('Invalid payload');
     }
 
     const password = payload.password;
-    // Perform password validation here
     const isPasswordValid = await bcrypt.compare(password, hashedSecretPassword);
 
     if (!isPasswordValid) {
@@ -37,19 +55,18 @@ scheduleRouter.post('/get', async (req, res) => {
     try {
         // Fetch schedules from the database
         const startDate = new Date(payload.scheduleStartDate);
-        const endOfWeek = new Date(startDate);
+        const endDate = new Date(startDate);
 
         // Get the day of the week (0 - Sunday, 1 - Monday, ..., 6 - Saturday)
         const startDayOfWeek = startDate.getDay();
-        const daysUntilNextWeek = startDayOfWeek + 7;
-        endOfWeek.setDate(endOfWeek.getDate() + daysUntilNextWeek);
+        const sixDaysLater = startDayOfWeek + 6;
+        endDate.setDate(endDate.getDate() + sixDaysLater);
         // Set the time to 23:59:59.999
-        endOfWeek.setHours(23, 59, 59, 999);
-        console.log(startDate, endOfWeek)
+        endDate.setHours(23, 59, 59, 999);
 
         const stmt = db.prepare(`SELECT * FROM schedules WHERE date(dateString) BETWEEN date(?) AND date(?) ORDER BY dateString`);
         const rows = await new Promise<any[]>((resolve, reject) => {
-            stmt.all(startDate.toISOString(), endOfWeek.toISOString(), (err: Error | null, rows: any[]) => {
+            stmt.all(startDate.toISOString(), endDate.toISOString(), (err: Error | null, rows: any[]) => {
                 if (err) {
                     console.error(err.message);
                     reject(err);
@@ -67,14 +84,13 @@ scheduleRouter.post('/get', async (req, res) => {
 })
 
 scheduleRouter.post('/set', async (req, res) => {
-    const payload: ScheduleUpdatePayload = req.body;
+    const payload: SetSchedulePayload = req.body;
 
     if (!(payload && payload.schedules && Array.isArray(payload.schedules))) {
         return res.status(400).send('Invalid payload');
     }
 
     const password = payload.password;
-    // Perform password validation here
     const isPasswordValid = await bcrypt.compare(password, hashedSecretPassword);
 
     if (!isPasswordValid) {
@@ -111,5 +127,42 @@ scheduleRouter.post('/set', async (req, res) => {
         res.status(500).send('Error updating schedules');
     }
 })
+
+scheduleRouter.post('/delete', async (req, res) => {
+    const payload: DeleteScheduleItemPayload = req.body;
+
+    if (!(payload && payload.id && payload.password)) {
+        return res.status(400).send('Invalid payload');
+    }
+
+    const password = payload.password;
+    const isPasswordValid = await bcrypt.compare(password, hashedSecretPassword);
+
+    if (!isPasswordValid) {
+        console.warn(`Someone at ${req.ip} tried and failed to delete a schedule item.`);
+        return res.status(401).send('Unauthorized');
+    }
+
+    try {
+        const stmt = db.prepare(`DELETE FROM schedules WHERE id = ?`);
+
+        await new Promise<void>((resolve, reject) => {
+            stmt.run(payload.id, (err: Error | null) => {
+                if (err) {
+                    console.error(err.message);
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
+        });
+
+        const logMsg = `Schedule item with ID ${payload.id} deleted successfully`;
+        res.status(200).send(logMsg);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error deleting schedule item');
+    }
+});
 
 export default scheduleRouter;
