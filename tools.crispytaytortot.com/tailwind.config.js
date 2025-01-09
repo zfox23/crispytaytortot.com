@@ -16,6 +16,9 @@ module.exports = {
       fontFamily: {
         'sans': ['tilt-neon', ...defaultTheme.fontFamily.sans],
       },
+      transitionTimingFunction: {
+        'bezier-nice': 'cubic-bezier(.3,.6,.3,1)',
+      },
       keyframes: {
         spin: {
           '0%, ': {

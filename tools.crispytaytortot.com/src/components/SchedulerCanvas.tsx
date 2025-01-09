@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowDownTrayIcon, PaintBrushIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { useEventListenerWindow } from '../../../crispytaytortot.com/src/hooks/useEventListener';
 
 const isBrowser = typeof window !== "undefined";
 
@@ -11,7 +12,7 @@ export const GAME_ICON_HEIGHT_PX = 64;
 if (isBrowser) {
     bgImage = new Image();
     bgImage.crossOrigin = "anonymous";
-    
+
     twitchIcon = new Image();
     const twitchIconBlob = new Blob([`<?xml version="1.0" encoding="UTF-8"?>
     <svg width="256px" height="268px" preserveAspectRatio="xMidYMid" version="1.1" viewBox="0 0 256 268" xmlns="http://www.w3.org/2000/svg">
@@ -53,6 +54,8 @@ if (isBrowser) {
 
 export const SchedulerCanvas = ({ sortedSchedules }) => {
     const [editingAppearance, setEditingAppearance] = useState(false);
+    const [isDraggingOver, setIsDraggingOver] = useState(false);
+
 
     const [bgImageSrc, setBgImageSrc] = useState('/images/tot-bg.jpg');
     const [headerTextHexColor, setHeaderTextHexColor] = useState("#FFFFFF");
@@ -69,9 +72,12 @@ export const SchedulerCanvas = ({ sortedSchedules }) => {
         const endDay = endDate.getDate();
         const year = endDate.getFullYear();
 
-        if (startMonth === endMonth) {
+        if (startMonth == endMonth && startDay === endDay) {
+            return `${startMonth} ${startDay}, ${year}`;
+        } else if (startMonth === endMonth) {
             return `${startMonth} ${startDay} - ${endDay}, ${year}`;
         }
+
         return `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${year}`;
     }
 
@@ -297,12 +303,60 @@ export const SchedulerCanvas = ({ sortedSchedules }) => {
         renderSchedule();
     }, [sortedSchedules, headerTextHexColor, headerTextFont, bodyTextHexColor, bodyTextFont, bgImageSrc])
 
+    const traverseUpToRoot = (element, searchID) => {
+        let currentElement = element;
+
+        while (currentElement !== null) {
+            // Check if the current element has the specified class
+            if (currentElement.id === searchID) {
+                return currentElement;
+            }
+
+            // Move to the parent node
+            currentElement = currentElement.parentNode;
+        }
+
+        return null;
+    }
+
+    const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        if (traverseUpToRoot(event.target, "scheduler-canvas-container")) {
+            setIsDraggingOver(true);
+        }
+    };
+
+    const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        setIsDraggingOver(false);
+    };
+
+    const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        setIsDraggingOver(false);
+
+        if (event.dataTransfer.files.length > 0) {
+            const file = event.dataTransfer.files[0];
+            if (file.type.startsWith('image/')) {
+                const imageUrl = URL.createObjectURL(file);
+                setBgImageSrc(imageUrl);
+            }
+        }
+    };
+
+    useEventListenerWindow("dragover", handleDragOver);
+    useEventListenerWindow("dragend", handleDragLeave);
+
     return (
-        <div className='flex flex-col gap-2 bg-neutral-800/30 dark:bg-neutral-800/80 p-4 rounded-lg'>
+        <div
+            id="scheduler-canvas-container"
+            className='flex flex-col gap-2 bg-neutral-800/30 dark:bg-neutral-800/80 p-4 rounded-lg relative'>
             <div className='relative overflow-clip'>
                 <canvas ref={canvasRef} id="scheduleCanvas" className="w-full h-auto aspect-square min-w-64 max-w-[768px] min-h-96 max-h-[50vh]"></canvas>
-                <div className={`${editingAppearance ? 'translate-y-0' : 'translate-y-full'} transition-all duration-150 dark:bg-gray-900/90 absolute inset-0 p-2 md:p-4 flex flex-col items-center gap-2`}>
-                    <h2 className='text-lg font-semibold'>Editing Schedule Appearance</h2>
+                <div className={`${editingAppearance ? 'translate-y-0' : 'translate-y-full'} transition-all duration-500 ease-bezier-nice dark:bg-gray-900/90 absolute inset-0 p-2 md:p-4 flex flex-col items-center gap-2`}>
+                    <button className='p-2 absolute top-2 right-2' onClick={toggleEditAppearancePanel}>
+                        <XMarkIcon className='w-5 h-5' />
+                    </button>
                     <div className='w-full grid grid-cols-[1fr_3fr] gap-4'>
                         <label htmlFor="bgImageUpload" className='text-right flex items-center justify-end'>Background Image</label>
                         <div className='flex items-center'>
@@ -325,6 +379,7 @@ export const SchedulerCanvas = ({ sortedSchedules }) => {
                             <input
                                 type="color"
                                 id="headerTextHexChanger"
+                                defaultValue={headerTextHexColor}
                                 onInput={(e) => { setHeaderTextHexColor((e.target as HTMLInputElement).value) }}
                                 className="cursor-pointer w-16 h-16 block text-sm text-white"
                             />
@@ -340,6 +395,7 @@ export const SchedulerCanvas = ({ sortedSchedules }) => {
                             <input
                                 type="color"
                                 id="bodyTextHexChanger"
+                                defaultValue={bodyTextHexColor}
                                 onInput={(e) => { setBodyTextHexColor((e.target as HTMLInputElement).value) }}
                                 className="cursor-pointer w-16 h-16 block text-sm text-white"
                             />
@@ -368,6 +424,13 @@ export const SchedulerCanvas = ({ sortedSchedules }) => {
 
                     <span>Edit Appearance</span>
                 </button>
+            </div>
+            <div
+                className={`absolute inset-0 bg-gray-800/80 flex justify-center items-center text-lg font-semibold border-dashed border-2 rounded-md transition-opacity duration-150 ${isDraggingOver ? 'border-blue-500 block' : 'border-gray-300 hidden'}`}
+                onDrop={handleDrop}
+                onDragLeave={handleDragLeave}
+            >
+                Drop Background Image
             </div>
         </div>
     )
