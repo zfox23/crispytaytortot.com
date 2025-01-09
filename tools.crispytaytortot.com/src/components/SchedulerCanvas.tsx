@@ -8,9 +8,10 @@ let bgImage, twitchIcon, youTubeIcon, blueskyIcon, tiktokIcon;
 export const GAME_ICON_WIDTH_PX = 64;
 export const GAME_ICON_HEIGHT_PX = 64;
 
-bgImage = new Image();
-bgImage.crossOrigin = "anonymous";
 if (isBrowser) {
+    bgImage = new Image();
+    bgImage.crossOrigin = "anonymous";
+    
     twitchIcon = new Image();
     const twitchIconBlob = new Blob([`<?xml version="1.0" encoding="UTF-8"?>
     <svg width="256px" height="268px" preserveAspectRatio="xMidYMid" version="1.1" viewBox="0 0 256 268" xmlns="http://www.w3.org/2000/svg">
