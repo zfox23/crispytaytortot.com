@@ -4,7 +4,7 @@ export interface ScheduleItem {
     time?: string;
     game: string;
     description?: string;
-    iconUrl?: string;
+    iconUrl: string;
 }
 
 export interface AuthorizePayload {

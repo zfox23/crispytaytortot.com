@@ -100,7 +100,7 @@ scheduleRouter.post('/set', async (req, res) => {
 
     try {
         for (const schedule of payload.schedules) {
-            const stmt = db.prepare(`REPLACE INTO schedules (id, dateString, time, game, description) VALUES (?, ?, ?, ?, ?)`);
+            const stmt = db.prepare(`REPLACE INTO schedules (id, dateString, time, game, description, iconUrl) VALUES (?, ?, ?, ?, ?, ?)`);
 
             await new Promise<void>((resolve, reject) => {
                 stmt.run(
@@ -109,6 +109,7 @@ scheduleRouter.post('/set', async (req, res) => {
                     schedule.time,
                     schedule.game,
                     schedule.description || null,
+                    schedule.iconUrl,
                     (err: Error) => {
                         if (err) {
                             console.error(err.message);
