@@ -353,7 +353,7 @@ const Scheduler: React.FC = () => {
                     <div className='flex flex-col w-full max-w-96 grow-0 shrink'>
                         <h2 className='font-semibold text-lg mb-0.5'>CrispyDB Operations</h2>
                         <div className='flex gap-2 mb-1'>
-                            <div className='w-full flex flex-col gap-1'>
+                            <div className='w-full flex flex-col gap-2'>
                                 <p className='text-center text-xs italic my-1 py-0.5'>Does not yet affect Twitch schedule</p>
                                 <button
                                     onClick={updateCrispyDBSchedule}
@@ -364,7 +364,7 @@ const Scheduler: React.FC = () => {
                                     <span>Update</span>
                                 </button>
                             </div>
-                            <div className='w-full flex flex-col gap-1'>
+                            <div className='w-full flex flex-col gap-2'>
                                 <div className='flex items-center gap-1 mx-auto'>
                                     <input
                                         type="date"
