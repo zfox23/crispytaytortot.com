@@ -39,19 +39,6 @@ const Scheduler: React.FC = () => {
     const importJsonTextareaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
-        if (scheduleImportStartDate) {
-            const date = new Date(scheduleImportStartDate);
-            date.setDate(date.getDate() + 7);
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-            const day = String(date.getDate()).padStart(2, '0');
-            setSevenDaysLaterDate(`${year}-${month}-${day}`);
-        } else {
-            setSevenDaysLaterDate('');
-        }
-    }, [scheduleImportStartDate]);
-
-    useEffect(() => {
         if (!(isBrowser && passwordInputRef.current)) return;
 
         const storedPassword = localStorage.getItem('crispyDBPassword');
@@ -122,6 +109,19 @@ const Scheduler: React.FC = () => {
 
         return `${year}-${month}-${day}`;
     }
+
+    useEffect(() => {
+        if (scheduleImportStartDate) {
+            const date = new Date(scheduleImportStartDate);
+            date.setDate(date.getDate() + 7);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+            const day = String(date.getDate()).padStart(2, '0');
+            setSevenDaysLaterDate(`${year}-${month}-${day}`);
+        } else {
+            setSevenDaysLaterDate('');
+        }
+    }, [scheduleImportStartDate]);
 
 
     useEffect(() => {
@@ -256,7 +256,7 @@ const Scheduler: React.FC = () => {
                 return "/images/crispytaytortot-70x70.png";
             }
 
-            return responseJSON;
+            return responseJSON.iconUrl;
         } catch (error) {
             console.error('Error fetching game details:', error);
             return "/images/crispytaytortot-70x70.png";
