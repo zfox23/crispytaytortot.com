@@ -276,7 +276,8 @@ export const SchedulerTable = ({ sortedSchedules, setSchedules, passwordInputRef
                                     }, 0);
                                 }}>
                                     <button className='group-hover:blur-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                                        <img className='w-7 md:w-10 h-7 md:h-10 aspect-square object-cover' src={schedule.iconUrl} />
+                                        {schedule.game.toLowerCase() !== "off" ? <img className='w-7 md:w-10 h-7 md:h-10 aspect-square object-cover' src={schedule.iconUrl} /> : null}
+
                                     </button>
                                     <PencilIcon className='w-8 h-8 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 hidden group-hover:block bg-indigo-700/90 rounded-md p-2 text-white' />
                                 </td>
