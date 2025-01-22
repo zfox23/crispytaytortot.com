@@ -12,7 +12,7 @@ export const openDatabase = () => {
                 console.error(err.message);
                 reject(err);
             } else {
-                console.log('Connected to the SQLite database.');
+                console.log('Connected to CrispyDB!');
                 resolve();
             }
         });

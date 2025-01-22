@@ -1,29 +1,47 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { fetchGameIcon } from './SchedulerTable';
 import { PlusCircleIcon } from '@heroicons/react/24/outline';
 import { ScheduleItem } from '../../../shared/src/types';
+import { computeDurationInHours, SCHEDULED_STREAM_LIMIT_HOURS } from '../../../shared/src/shared';
 
 export const SchedulerAdder = ({ schedules, setSchedules }: { schedules: ScheduleItem[], setSchedules: (i: ScheduleItem[]) => void }) => {
-    const [startDateTimeRFC3339, setStartDateTimeRFC3339] = useState('');
-    const [endDateTimeRFC3339, setEndDateTimeRFC3339] = useState('');
+    const [startDateTimeString, setStartDateTimeString] = useState('');
+    const [endDateTimeString, setEndDateTimeString] = useState('');
     const [game, setGame] = useState('');
     const [description, setDescription] = useState('');
 
+    const endDateTimeInputRef = useRef<HTMLInputElement>(null);
+
+    const checkStreamDuration = () => {
+        if (!(endDateTimeInputRef && endDateTimeInputRef.current)) return;
+
+        if (computeDurationInHours(startDateTimeString, endDateTimeString) > SCHEDULED_STREAM_LIMIT_HOURS) {
+            endDateTimeInputRef.current.setCustomValidity(`Maximum stream duration is ${SCHEDULED_STREAM_LIMIT_HOURS} hours.`);
+        } else {
+            endDateTimeInputRef.current.setCustomValidity("");
+        }
+    }
+
+    useEffect(checkStreamDuration, [endDateTimeString]);
+
     const addSchedule = async (event: React.FormEvent) => {
         event.preventDefault();
+
+        checkStreamDuration();
+
         const iconUrl = await fetchGameIcon(game);
-        if (startDateTimeRFC3339 && endDateTimeRFC3339 && game) {
+        if (startDateTimeString && endDateTimeString && game) {
             setSchedules([...schedules, {
                 id: crypto.randomUUID(),
-                startDateTimeRFC3339,
-                endDateTimeRFC3339,
+                startDateTimeRFC3339: new Date(startDateTimeString).toISOString(),
+                endDateTimeRFC3339: new Date(endDateTimeString).toISOString(),
                 ianaTimeZoneName: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 game,
                 description,
                 iconUrl
             }]);
-            setStartDateTimeRFC3339('');
-            setEndDateTimeRFC3339('');
+            setStartDateTimeString('');
+            setEndDateTimeString('');
             setGame('');
             setDescription('');
         }
@@ -32,27 +50,35 @@ export const SchedulerAdder = ({ schedules, setSchedules }: { schedules: Schedul
     return (
         <form onSubmit={addSchedule} className="flex flex-col space-y-4 justify-center w-full grow md:min-w-80 md:max-w-96">
             <h2 className='text-xl font-semibold'>Add to Schedule</h2>
-            <div className='flex flex-col items-center gap-1 !mt-2'>
+            <div className='flex flex-col items-start gap-0.5'>
                 <div className='w-full'>
-                    <p>Start</p>
                     <input
                         type="datetime-local"
-                        value={startDateTimeRFC3339}
+                        value={startDateTimeString}
+                        required={true}
                         onChange={(e) => {
-                            setStartDateTimeRFC3339(e.target.value)
+                            setStartDateTimeString(e.target.value);
+                            if (!endDateTimeString) {
+                                setEndDateTimeString(e.target.value);
+                            }
                         }}
-                        className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-100 dark:bg-gray-800 text-black dark:text-white"
+                        className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-lg bg-gray-100 dark:bg-gray-800 text-black dark:text-white"
                     />
                 </div>
+                <p>to</p>
                 <div className='w-full'>
-                    <p>End</p>
                     <input
                         type="datetime-local"
-                        value={endDateTimeRFC3339}
-                        onChange={(e) => { setEndDateTimeRFC3339(e.target.value) }}
-                        className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-100 dark:bg-gray-800 text-black dark:text-white"
+                        value={endDateTimeString}
+                        required={true}
+                        ref={endDateTimeInputRef}
+                        onChange={(e) => {
+                            setEndDateTimeString(e.target.value);
+                        }}
+                        className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-lg bg-gray-100 dark:bg-gray-800 text-black dark:text-white"
                     />
                 </div>
+                <p className='italic text-sm'>Time Zone: {Intl.DateTimeFormat().resolvedOptions().timeZone}</p>
             </div>
             <input
                 type="text"
