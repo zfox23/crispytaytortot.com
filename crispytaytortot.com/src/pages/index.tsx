@@ -49,7 +49,7 @@ const IndexPage = ({ data }) => {
     useEffect(() => {
         const fetchTwitchInfo = async () => {
             try {
-                const response = await fetch('/api/v1/twitch/info');
+                const response = await fetch('/api/v2/twitch/info');
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }

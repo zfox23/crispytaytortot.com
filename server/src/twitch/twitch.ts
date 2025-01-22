@@ -1,5 +1,7 @@
 
+import { Database } from 'sqlite3';
 import { cachedTwitchUserAuthInfo } from './twitch-auth';
+import { ScheduleItem } from '../../../shared/src/types';
 
 // https://discuss.dev.twitch.tv/t/get-stream-total-live-views/28891
 // Total stream views is deprecated.
@@ -111,4 +113,20 @@ export const getTwitchFollowerInfo = async () => {
     }
 
     return { ok: true, total: twitchFollowerInfoJSON.total };
+}
+
+export const updateTwitchSchedule = (db: Database, startDate: Date, endDate: Date) => {
+    return new Promise<void>(async (resolve, reject) => {
+        const stmt = db.prepare(`SELECT id, startDateTimeRFC3339, endDateTimeRFC3339, game FROM schedules WHERE date(startDateTimeRFC3339) BETWEEN date(?) AND date(?) ORDER BY startDateTimeRFC3339`);
+        const rows = await new Promise<ScheduleItem[]>((resolve, reject) => {
+            stmt.all(startDate.toISOString(), endDate.toISOString(), (err: Error | null, rows: any[]) => {
+                if (err) {
+                    console.error(err.message);
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    })
 }

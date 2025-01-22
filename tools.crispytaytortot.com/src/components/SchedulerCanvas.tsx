@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowDownTrayIcon, PaintBrushIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useEventListenerWindow } from '../../../crispytaytortot.com/src/hooks/useEventListener';
+import { ScheduleItem } from '../../../shared/src/types';
 
 const isBrowser = typeof window !== "undefined";
 
@@ -52,7 +53,7 @@ if (isBrowser) {
     tiktokIcon.crossOrigin = "anonymous";
 }
 
-export const SchedulerCanvas = ({ sortedSchedules }) => {
+export const SchedulerCanvas = ({ sortedSchedules }: { sortedSchedules: ScheduleItem[]}) => {
     const [editingAppearance, setEditingAppearance] = useState(false);
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
@@ -81,14 +82,9 @@ export const SchedulerCanvas = ({ sortedSchedules }) => {
         return `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${year}`;
     }
 
-    const formatScheduleImageTimeString = (timeValue) => {
-        const [hours, minutes] = timeValue.split(':').map(Number);
-        const now = new Date();
-        const inputDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
-
-        // Format local time
-        const localTime = inputDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', timeZoneName: "short", hour12: true });
-        const utcTime = inputDate.toLocaleTimeString('en-US', { timeZone: 'UTC', hour: 'numeric', minute: 'numeric', timeZoneName: "short", hour12: false });
+    const formatScheduleImageTimeString = (dateObj: Date) => {
+        const localTime = dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', timeZoneName: "short", hour12: true });
+        const utcTime = dateObj.toLocaleTimeString('en-US', { timeZone: 'UTC', hour: 'numeric', minute: 'numeric', timeZoneName: "short", hour12: false });
 
         return `${localTime} / ${utcTime}`;
     }
@@ -181,10 +177,8 @@ export const SchedulerCanvas = ({ sortedSchedules }) => {
         ctx.font = `bold 56px ${headerTextFont}`;
 
         if (sortedSchedules.length) {
-            let [year, month, date] = sortedSchedules[0].dateString.split('-').map(Number);
-            const startDate = new Date(year, month - 1, date);
-            [year, month, date] = sortedSchedules[sortedSchedules.length - 1].dateString.split('-').map(Number);
-            const endDate = new Date(year, month - 1, date);
+            const startDate = new Date(sortedSchedules[0].startDateTimeRFC3339);
+            const endDate = new Date(sortedSchedules[sortedSchedules.length - 1].startDateTimeRFC3339);
 
             text = formatDateRange(startDate, endDate);
             textX = canvas.width / 2;
@@ -197,26 +191,25 @@ export const SchedulerCanvas = ({ sortedSchedules }) => {
 
         textY += 32;
 
-        let currentDateString: string = "";
+        let currentDate: string = "";
 
         for (let i = 0; i < sortedSchedules.length; i++) {
-            let numCurrentDateStrings;
+            let numSchedulesOnCurrentDate;
             textX = 32;
-            if (currentDateString !== sortedSchedules[i].dateString) {
-                currentDateString = sortedSchedules[i].dateString;
-                numCurrentDateStrings = sortedSchedules.filter((s) => { return s.dateString === currentDateString; }).length;
+            if (currentDate !== new Date(sortedSchedules[i].startDateTimeRFC3339).toLocaleDateString()) {
+                currentDate = new Date(sortedSchedules[i].startDateTimeRFC3339).toLocaleDateString();
+                numSchedulesOnCurrentDate = sortedSchedules.filter((s) => { return new Date(s.startDateTimeRFC3339).toLocaleDateString() === currentDate; }).length;
 
                 ctx.fillStyle = "#000000AA";
                 ctx.beginPath();
-                ctx.roundRect(textX, textY, canvas.width - (2 * textX), DAY_RECT_BG_BASE_HEIGHT_PX + ((numCurrentDateStrings - 1) * 82), DAY_RECT_BG_RADII_PX);
+                ctx.roundRect(textX, textY, canvas.width - (2 * textX), DAY_RECT_BG_BASE_HEIGHT_PX + ((numSchedulesOnCurrentDate - 1) * 82), DAY_RECT_BG_RADII_PX);
                 ctx.fill();
 
                 ctx.font = `${WEEKDAY_TEXT_HEIGHT_PX}px ${bodyTextFont}`;
                 textX += DAY_RECT_BG_RADII_PX / 2;
                 textY += DAY_RECT_BG_BASE_HEIGHT_PX / 2 + 15;
                 ctx.fillStyle = bodyTextHexColor;
-                let [year, month, date] = sortedSchedules[i].dateString.split('-').map(Number);
-                const d = new Date(year, month - 1, date);
+                const d = new Date(sortedSchedules[i].startDateTimeRFC3339);
                 ctx.fillText(d.toLocaleDateString('en-us', { weekday: 'short' }).toUpperCase(), textX, textY);
                 textX += 118;
             } else {
@@ -237,31 +230,35 @@ export const SchedulerCanvas = ({ sortedSchedules }) => {
 
             ctx.font = `${DETAILS_TEXT_HEIGHT_PX}px ${bodyTextFont}`;
             const savedTextY = textY;
-            if (sortedSchedules[i].time && sortedSchedules[i].game && sortedSchedules[i].description) {
+            if (sortedSchedules[i].startDateTimeRFC3339 && sortedSchedules[i].game && sortedSchedules[i].description) {
                 textY -= (DETAILS_TEXT_HEIGHT_PX - 13);
-                text = formatScheduleImageTimeString(sortedSchedules[i].time);
+                text = formatScheduleImageTimeString(new Date(sortedSchedules[i].startDateTimeRFC3339));
                 ctx.fillText(text, textX, textY);
                 textY += DETAILS_TEXT_HEIGHT_PX + 2;
                 text = `${sortedSchedules[i].game} - ${sortedSchedules[i].description}`;
                 ctx.fillText(text, textX, textY);
-            } else if (sortedSchedules[i].time && sortedSchedules[i].game && !sortedSchedules[i].description) {
+            } else if (sortedSchedules[i].startDateTimeRFC3339 && sortedSchedules[i].game && !sortedSchedules[i].description) {
                 textY -= (DETAILS_TEXT_HEIGHT_PX - 13);
-                text = formatScheduleImageTimeString(sortedSchedules[i].time);
+                text = formatScheduleImageTimeString(new Date(sortedSchedules[i].startDateTimeRFC3339));
                 ctx.fillText(text, textX, textY);
                 textY += DETAILS_TEXT_HEIGHT_PX + 2;
                 text = `${sortedSchedules[i].game}`;
                 ctx.fillText(text, textX, textY);
-            } else if (!sortedSchedules[i].time && sortedSchedules[i].game && sortedSchedules[i].description) {
+            } else if (!sortedSchedules[i].startDateTimeRFC3339 && sortedSchedules[i].game && sortedSchedules[i].description) {
+                // TODO: Rethink this case. Start time will always exist.
+                // This case is for "all day" or "time unspecified" streams with a description.
                 textY -= 5;
                 text = `${sortedSchedules[i].game} - ${sortedSchedules[i].description}`;
                 ctx.fillText(text, textX, textY);
-            } else if (!sortedSchedules[i].time && sortedSchedules[i].game && !sortedSchedules[i].description) {
+            } else if (!sortedSchedules[i].startDateTimeRFC3339 && sortedSchedules[i].game && !sortedSchedules[i].description) {
+                // TODO: Rethink this case. Start time will always exist.
+                // This case is for "all day" or "time unspecified" streams without a description.
                 textY -= 5;
                 text = `${sortedSchedules[i].game}`;
                 ctx.fillText(text, textX, textY);
             }
 
-            if (sortedSchedules[i + 1] && currentDateString !== sortedSchedules[i + 1].dateString) {
+            if (sortedSchedules[i + 1] && currentDate !== new Date(sortedSchedules[i + 1].startDateTimeRFC3339).toLocaleDateString()) {
                 textY = savedTextY + DAY_RECT_BG_BASE_HEIGHT_PX / 2;
             } else {
                 textY = savedTextY + 84;

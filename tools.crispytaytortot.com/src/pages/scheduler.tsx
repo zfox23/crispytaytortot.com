@@ -74,8 +74,8 @@ const Scheduler: React.FC = () => {
 
 
     useEffect(() => {
-        const nextMonday = getPreviousMonday();
-        setScheduleImportStartDate(nextMonday);
+        const previousMonday = getPreviousMonday();
+        setScheduleImportStartDate(previousMonday);
     }, [])
 
     useEffect(() => {
@@ -85,23 +85,8 @@ const Scheduler: React.FC = () => {
 
     const sortSchedules = (inputSchedules: ScheduleItem[]) => {
         const sortedSchedules = [...inputSchedules].sort((a, b) => {
-            // Compare date strings lexicographically
-            const dateStringComparison = a.dateString.localeCompare(b.dateString);
-            if (dateStringComparison !== 0) {
-                return dateStringComparison;
-            }
-
-            // If dates are the same, compare times
-            if (a.time && !b.time) {
-                return 1;
-            } else if (!a.time && b.time) {
-                return -1;
-            } else if (a.time && b.time) {
-                return a.time.localeCompare(b.time);
-            }
-
-            // If both time and date are the same, consider them equal
-            return 0;
+            const startTimeComparison = a.startDateTimeRFC3339.localeCompare(b.startDateTimeRFC3339);
+            return startTimeComparison;
         });
 
         return sortedSchedules;
@@ -159,7 +144,7 @@ const Scheduler: React.FC = () => {
         };
 
         try {
-            const response = await fetch('/api/v1/schedule/authorize', {
+            const response = await fetch('/api/v2/schedule/authorize', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -210,7 +195,7 @@ const Scheduler: React.FC = () => {
         };
 
         try {
-            const response = await fetch('/api/v1/schedule/set', {
+            const response = await fetch('/api/v2/schedule/set', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -255,7 +240,7 @@ const Scheduler: React.FC = () => {
         };
 
         try {
-            const response = await fetch('/api/v1/schedule/get', {
+            const response = await fetch('/api/v2/schedule/get', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -275,11 +260,13 @@ const Scheduler: React.FC = () => {
 
                     importedScheduleItems.push({
                         id: row.id,
-                        dateString: row.dateString,
-                        time: row.time,
+                        startDateTimeRFC3339: row.startDateTimeRFC3339,
+                        endDateTimeRFC3339: row.endDateTimeRFC3339,
+                        ianaTimeZoneName: row.ianaTimeZoneName,
                         game: row.game,
                         description: row.description,
-                        iconUrl: ico
+                        iconUrl: ico,
+                        twitchScheduleBroadcastID: row.twitchScheduleBroadcastID
                     })
                 }
 
@@ -304,7 +291,7 @@ const Scheduler: React.FC = () => {
             <Background />
             <Header />
 
-            <div className="p-2 md:p-4 max-w-full flex flex-col items-center gap-4 bg-white/75 dark:bg-transparent backdrop-blur-lg backdrop-brightness-50 text-neutral-900 dark:text-slate-50 md:rounded-lg shadow-md relative">
+            <div className="p-1 md:p-4 max-w-full flex flex-col items-center gap-4 bg-white/75 dark:bg-transparent backdrop-blur-lg backdrop-brightness-50 text-neutral-900 dark:text-slate-50 md:rounded-lg shadow-md relative">
                 <h1 className='text-2xl md:text-3xl font-semibold'>Crispy's Stream Scheduler</h1>
                 <div className='w-full flex justify-center items-center gap-4 flex-col md:flex-row'>
                     <SchedulerAdder schedules={schedules} setSchedules={setSchedules} />

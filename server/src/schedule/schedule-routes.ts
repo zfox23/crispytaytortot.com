@@ -1,8 +1,9 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
-import { AuthorizePayload, DeleteScheduleItemPayload, GetSchedulePayload, ScheduleItem, SetSchedulePayload } from '../../../shared/src/types';
+import { AuthorizePayload, DeleteScheduleItemPayload, GetSchedulePayload, SetSchedulePayload } from '../../../shared/src/types';
 import { db } from '../database/db';
+import { updateTwitchSchedule } from '../twitch/twitch';
 dotenv.config();
 const scheduleRouter = express.Router();
 
@@ -64,7 +65,7 @@ scheduleRouter.post('/get', async (req, res) => {
         // Set the time to 23:59:59.999
         endDate.setHours(23, 59, 59, 999);
 
-        const stmt = db.prepare(`SELECT * FROM schedules WHERE date(dateString) BETWEEN date(?) AND date(?) ORDER BY dateString`);
+        const stmt = db.prepare(`SELECT * FROM schedules WHERE date(startDateTimeRFC3339) BETWEEN date(?) AND date(?) ORDER BY startDateTimeRFC3339`);
         const rows = await new Promise<any[]>((resolve, reject) => {
             stmt.all(startDate.toISOString(), endDate.toISOString(), (err: Error | null, rows: any[]) => {
                 if (err) {
@@ -99,14 +100,28 @@ scheduleRouter.post('/set', async (req, res) => {
     }
 
     try {
+        let minDate: Date | null = null;
+        let maxDate: Date | null = null;
+
         for (const schedule of payload.schedules) {
-            const stmt = db.prepare(`REPLACE INTO schedules (id, dateString, time, game, description, iconUrl) VALUES (?, ?, ?, ?, ?, ?)`);
+            const currentStartDate = new Date(schedule.startDateTimeRFC3339);
+
+            if (!minDate || currentStartDate < minDate) {
+                minDate = currentStartDate;
+            }
+
+            if (!maxDate || currentStartDate > maxDate) {
+                maxDate = currentStartDate;
+            }
+
+            const stmt = db.prepare(`REPLACE INTO schedules (id, startDateTimeRFC3339, endDateTimeRFC3339, ianaTimeZoneName, game, description, iconUrl) VALUES (?, ?, ?, ?, ?, ?, ?)`);
 
             await new Promise<void>((resolve, reject) => {
                 stmt.run(
                     schedule.id,
-                    schedule.dateString,
-                    schedule.time,
+                    schedule.startDateTimeRFC3339,
+                    schedule.endDateTimeRFC3339,
+                    schedule.ianaTimeZoneName,
                     schedule.game,
                     schedule.description || null,
                     schedule.iconUrl,
@@ -121,6 +136,10 @@ scheduleRouter.post('/set', async (req, res) => {
                 );
             });
         }
+
+        // if (minDate && maxDate) {
+        //     await updateTwitchSchedule(db, minDate, maxDate);
+        // }
 
         res.status(200).send('Schedules updated successfully');
     } catch (error) {

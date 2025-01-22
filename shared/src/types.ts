@@ -1,10 +1,12 @@
 export interface ScheduleItem {
     id: string;
-    dateString: string;
-    time?: string;
+    startDateTimeRFC3339: string;
+    endDateTimeRFC3339: string;
+    ianaTimeZoneName: string;
     game: string;
     description?: string;
     iconUrl: string;
+    twitchScheduleBroadcastID?: string;
 }
 
 export interface AuthorizePayload {

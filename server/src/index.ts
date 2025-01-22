@@ -4,9 +4,9 @@ import cors from 'cors';
 import twitchRouter from './twitch/twitch-routes';
 import steamRouter from './steam/steam-routes';
 import twitchAuthRouter from './twitch/twitch-auth-routes';
+import scheduleRouter from './schedule/schedule-routes';
 import { cacheAllOwnedApps } from './steam/steam';
 import { configDotenv } from 'dotenv';
-import scheduleRouter from './schedule/schedule-routes';
 import { initDatabase, openDatabase } from './database/db';
 
 configDotenv();
@@ -25,9 +25,9 @@ async function setupDB() {
 
 setupDB();
 
-app.use('/api/v1/twitch/', twitchRouter);
-app.use('/api/v1/twitch/', twitchAuthRouter);
-app.use('/api/v1/steam/', steamRouter);
-app.use('/api/v1/schedule/', scheduleRouter);
+app.use('/api/v2/twitch/', twitchRouter);
+app.use('/api/v2/twitch/', twitchAuthRouter);
+app.use('/api/v2/steam/', steamRouter);
+app.use('/api/v2/schedule/', scheduleRouter);
 
 app.listen(4243, () => console.log(`${Date.now()}: crispytaytortot.com NodeJS server listening on port 4243!`));
