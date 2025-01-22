@@ -18,5 +18,10 @@
         "fromPath": "/pc2-ps5/",
         "title": "Planet Coaster 2 - PS5 via CrispyTaytorTot",
         "toPath": "https://store.playstation.com/en-us/product/UP2514-PPSA01736_00-PLANETCOASTER000"
+    },
+    {
+        "fromPath": "/airborne-empire/",
+        "title": "Airborne Empire - Steam via CrispyTaytorTot",
+        "toPath": "https://store.steampowered.com/app/2438680/Airborne_Empire/"
     }
 ]
