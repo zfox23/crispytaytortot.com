@@ -1,8 +1,8 @@
 import express, { Response } from 'express';
 import bcrypt from 'bcrypt';
 import { cachedTwitchUserAuthInfo, refreshTwitchUserAccessToken } from './twitch-auth';
-import { addToOrUpdateTwitchSchedule, getChannelSubs, getStreams, getTwitchFollowerInfo } from './twitch';
-import { SetTwitchSchedulePayload } from '../../../shared/src/types';
+import { addToAndUpdateTwitchScheduleSegments, getChannelSubs, getStreams, getTwitchFollowerInfo } from './twitch';
+import { AddToAndUpdateTwitchScheduleResponse, TwitchRouterPostSchedulePayload, TwitchRouterPostScheduleResponse } from '../../../shared/src/types';
 import { hashedSecretPassword } from '../schedule/schedule-routes';
 const twitchRouter = express.Router();
 
@@ -42,7 +42,11 @@ twitchRouter.get("/info", async (req, res: Response) => {
 })
 
 twitchRouter.post("/schedule", async (req, res: Response) => {
-    const payload: SetTwitchSchedulePayload = req.body;
+    const payload: TwitchRouterPostSchedulePayload = req.body;
+    let response: TwitchRouterPostScheduleResponse = {
+        newScheduledSegmentsMap: new Map(),
+        updatedScheduledSegmentsMap: new Map(),
+    }
 
     if (!(payload && payload.startDateString)) {
         return res.status(400).send('Invalid payload');
@@ -61,7 +65,16 @@ twitchRouter.post("/schedule", async (req, res: Response) => {
         return res.status(500).send(`Server couldn't refresh Twitch user access token.`);
     }
 
-    await addToOrUpdateTwitchSchedule(res, new Date(payload.startDateString), new Date(payload.endDateString));
+    let addToAndUpdateTwitchScheduleResponse: AddToAndUpdateTwitchScheduleResponse;
+    try {
+        addToAndUpdateTwitchScheduleResponse = await addToAndUpdateTwitchScheduleSegments(new Date(payload.startDateString), new Date(payload.endDateString));
+        response.newScheduledSegmentsMap = addToAndUpdateTwitchScheduleResponse.newScheduledSegmentsMap;
+        response.updatedScheduledSegmentsMap = addToAndUpdateTwitchScheduleResponse.updatedScheduledSegmentsMap;
+    } catch (e) {
+        return res.status(500).send(e);
+    }
+
+    return res.status(200).send(response);
 })
 
 export default twitchRouter;

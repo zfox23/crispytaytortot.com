@@ -1,9 +1,9 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
-import { AuthorizePayload, DeleteScheduleItemPayload, GetSchedulePayload, SetSchedulePayload } from '../../../shared/src/types';
+import { ScheduleRouterPostAuthorizePayload, ScheduleRouterPostDeletePayload, ScheduleRouterPostGetPayload, ScheduleRouterPostSetPayload } from '../../../shared/src/types';
 import { crispyDB } from '../database/db';
-import { updateTwitchCategoryIDCache } from '../twitch/twitch';
+import { deleteTwitchScheduleSegment, updateTwitchCategoryIDCache } from '../twitch/twitch';
 dotenv.config();
 const scheduleRouter = express.Router();
 
@@ -19,7 +19,7 @@ export const hashedSecretPassword = bcrypt.hashSync(SCHEDULE_SECRET_PASSWORD, sa
 
 
 scheduleRouter.post('/authorize', async (req, res) => {
-    const payload: AuthorizePayload = req.body;
+    const payload: ScheduleRouterPostAuthorizePayload = req.body;
 
     if (!(payload && payload.password)) {
         return res.status(400).send('Invalid payload');
@@ -38,7 +38,7 @@ scheduleRouter.post('/authorize', async (req, res) => {
 })
 
 scheduleRouter.post('/get', async (req, res) => {
-    const payload: GetSchedulePayload = req.body;
+    const payload: ScheduleRouterPostGetPayload = req.body;
 
     if (!(payload && payload.scheduleStartDate)) {
         return res.status(400).send('Invalid payload');
@@ -85,7 +85,7 @@ scheduleRouter.post('/get', async (req, res) => {
 })
 
 scheduleRouter.post('/set', async (req, res) => {
-    const payload: SetSchedulePayload = req.body;
+    const payload: ScheduleRouterPostSetPayload = req.body;
 
     if (!(payload && payload.schedules && Array.isArray(payload.schedules))) {
         return res.status(400).send('Invalid payload');
@@ -134,7 +134,7 @@ scheduleRouter.post('/set', async (req, res) => {
 })
 
 scheduleRouter.post('/delete', async (req, res) => {
-    const payload: DeleteScheduleItemPayload = req.body;
+    const payload: ScheduleRouterPostDeletePayload = req.body;
 
     if (!(payload && payload.id && payload.password)) {
         return res.status(400).send('Invalid payload');
@@ -146,6 +146,13 @@ scheduleRouter.post('/delete', async (req, res) => {
     if (!isPasswordValid) {
         console.warn(`Someone at ${req.ip} tried and failed to delete a schedule item.`);
         return res.status(401).send('Unauthorized');
+    }
+
+    try {
+        await deleteTwitchScheduleSegment(payload.id);
+    } catch (e) {
+        console.error(e);
+        return res.status(500).send(e);
     }
 
     try {
@@ -163,10 +170,10 @@ scheduleRouter.post('/delete', async (req, res) => {
         });
 
         const logMsg = `Schedule item with ID ${payload.id} deleted successfully`;
-        res.status(200).send(logMsg);
+        return res.status(200).send(logMsg);
     } catch (error) {
         console.error(error);
-        res.status(500).send('Error deleting schedule item');
+        return res.status(500).send('Error deleting schedule item');
     }
 });
 

@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { PencilIcon } from "@heroicons/react/24/outline";
 import { GAME_ICON_HEIGHT_PX, GAME_ICON_WIDTH_PX } from './SchedulerCanvas';
-import { DeleteScheduleItemPayload, ScheduleItem } from '../../../shared/src/types';
+import { ScheduleRouterPostDeletePayload, ScheduleItem } from '../../../shared/src/types';
 import { CheckIcon, TrashIcon } from '@heroicons/react/24/solid';
 import { rfc3339ToLocalYYYYMMDDTHHMM } from '../../../shared/src/shared';
+import { LoadingSpinner } from './LoadingSpinner';
 
 export const isBrowser = typeof window !== "undefined";
 
@@ -29,6 +30,7 @@ export const fetchGameIcon = async (gameName: string): Promise<string> => {
 };
 
 export const SchedulerTable = ({ sortedSchedules, setSchedules, passwordInputRef, isAuthorized, setOperationStatus }) => {
+    const [isPerformingTwitchAPIOperation, setIsPerformingTwitchAPIOperation] = useState<string>('');
     const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null);
     const [editedStartDateTimeString, setEditedStartDateTimeString] = useState('');
     const [editedEndDateTimeString, setEditedEndDateTimeString] = useState('');
@@ -94,16 +96,21 @@ export const SchedulerTable = ({ sortedSchedules, setSchedules, passwordInputRef
     };
 
     const removeSchedule = async (id: string) => {
-        if (!passwordInputRef.current) return;
+        if (!passwordInputRef.current) {
+            return;
+        }
+
+        setIsPerformingTwitchAPIOperation(id);
 
         const password = passwordInputRef.current.value;
         if (!password) {
             setOperationStatus('Password is required.');
+            setIsPerformingTwitchAPIOperation('');
             return;
         }
 
 
-        const payload: DeleteScheduleItemPayload = {
+        const payload: ScheduleRouterPostDeletePayload = {
             id,
             password,
         };
@@ -121,7 +128,7 @@ export const SchedulerTable = ({ sortedSchedules, setSchedules, passwordInputRef
                 const result = await response.text();
                 console.log('Deleted schedule item successfully:', result);
                 setSchedules(sortedSchedules.filter((schedule) => schedule.id !== id));
-                setOperationStatus("Deleted schedule item from CrispyDB successfully!")
+                setOperationStatus("Deleted schedule item from CrispyDB successfully!");
             } else {
                 const errorData = await response.text();
                 console.error('Failed to delete schedule item:', errorData);
@@ -130,6 +137,7 @@ export const SchedulerTable = ({ sortedSchedules, setSchedules, passwordInputRef
             console.error('Error during fetch operation:', error);
         }
 
+        setIsPerformingTwitchAPIOperation('');
     };
 
     const saveScheduleChanges = (id: string) => {
@@ -319,10 +327,10 @@ export const SchedulerTable = ({ sortedSchedules, setSchedules, passwordInputRef
                             ) : (
                                 <button
                                     onClick={() => removeSchedule(schedule.id)}
-                                    disabled={!isAuthorized}
+                                    disabled={!isAuthorized || isPerformingTwitchAPIOperation === schedule.id}
                                     className="btn-action-red"
                                 >
-                                    <TrashIcon className='w-5 h-5 md:w-6 md:h-6' />
+                                    {isPerformingTwitchAPIOperation === schedule.id ? <LoadingSpinner className='w-5 h-5 md:w-6 md:h-6' /> : <TrashIcon className='w-5 h-5 md:w-6 md:h-6' />}
                                 </button>
                             )}
                         </td>

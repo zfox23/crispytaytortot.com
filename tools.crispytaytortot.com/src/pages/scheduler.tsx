@@ -5,7 +5,7 @@ import { CloudArrowDownIcon, CloudArrowUpIcon, CodeBracketIcon, LockClosedIcon, 
 import SEOHeader from '../components/SEOHeader';
 import { Footer } from '../../../crispytaytortot.com/src/components/Footer';
 import { Background } from '../../../crispytaytortot.com/src/components/Background';
-import { AuthorizePayload, DeleteScheduleItemPayload, GetSchedulePayload, ScheduleItem, SetSchedulePayload, SetTwitchSchedulePayload } from '../../../shared/src/types';
+import { ScheduleRouterPostAuthorizePayload, ScheduleRouterPostGetPayload, ScheduleItem, ScheduleRouterPostSetPayload, TwitchRouterPostSchedulePayload } from '../../../shared/src/types';
 import { Header } from '../components/Header';
 import { SchedulerCanvas } from '../components/SchedulerCanvas';
 import { fetchGameIcon, isBrowser, SchedulerTable } from '../components/SchedulerTable';
@@ -142,7 +142,7 @@ const Scheduler: React.FC = () => {
         }
 
 
-        const payload: AuthorizePayload = {
+        const payload: ScheduleRouterPostAuthorizePayload = {
             password,
         };
 
@@ -192,7 +192,7 @@ const Scheduler: React.FC = () => {
             return;
         }
 
-        const payload: SetSchedulePayload = {
+        const payload: ScheduleRouterPostSetPayload = {
             schedules,
             password,
         };
@@ -237,7 +237,7 @@ const Scheduler: React.FC = () => {
             return;
         }
 
-        const payload: GetSchedulePayload = {
+        const payload: ScheduleRouterPostGetPayload = {
             scheduleStartDate: scheduleImportStartDate,
             password,
         };
@@ -337,7 +337,7 @@ const Scheduler: React.FC = () => {
         const startDateString = minStartDate.toISOString();
         const endDateString = maxEndDate.toISOString();
 
-        const payload: SetTwitchSchedulePayload = {
+        const payload: TwitchRouterPostSchedulePayload = {
             password,
             startDateString,
             endDateString,

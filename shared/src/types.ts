@@ -10,32 +10,62 @@ export interface ScheduleItem {
     twitchCategoryID?: string;
 }
 
-export interface AuthorizePayload {
+export interface ScheduleRouterPostAuthorizePayload {
     password: string;
 }
 
-export interface SetSchedulePayload {
+export interface ScheduleRouterPostSetPayload {
     password: string;
     schedules: ScheduleItem[];
 }
 
-export interface DeleteScheduleItemPayload {
+export interface ScheduleRouterPostDeletePayload {
     password: string;
     id: string;
 }
 
-export interface GetSchedulePayload {
+export interface ScheduleRouterPostGetPayload {
     password: string;
     scheduleStartDate: string;
 }
 
-export interface SetTwitchSchedulePayload {
+export interface TwitchRouterPostSchedulePayload {
     password: string;
     startDateString: string;
     endDateString: string;
 }
 
-export interface TwitchScheduleSegmentBody {
+export type CrispyDBScheduleID = string;
+export type TwitchScheduleSegmentID = string;
+
+export interface TwitchRouterPostScheduleResponse {
+    newScheduledSegmentsMap: Map<CrispyDBScheduleID, TwitchScheduleSegmentID>;
+    updatedScheduledSegmentsMap: Map<CrispyDBScheduleID, TwitchScheduleSegmentID>;
+}
+
+export interface AddToAndUpdateTwitchScheduleResponse {
+    newScheduledSegmentsMap: Map<CrispyDBScheduleID, TwitchScheduleSegmentID>;
+    updatedScheduledSegmentsMap: Map<CrispyDBScheduleID, TwitchScheduleSegmentID>;
+}
+
+export interface DeleteTwitchScheduleSegmentResponse {
+    id: CrispyDBScheduleID;
+}
+
+export interface CreateNewTwitchStreamScheduleSegmentsResponse {
+    newScheduledSegmentsMap: Map<CrispyDBScheduleID, TwitchScheduleSegmentID>;
+}
+
+export interface UpdateTwitchStreamScheduleSegmentsResponse {
+    updatedScheduledSegmentsMap: Map<CrispyDBScheduleID, TwitchScheduleSegmentID>;
+}
+
+export interface UpdateTwitchCategoryIDCacheResponse {
+}
+
+
+
+export interface TwitchAPIScheduleSegmentPayload {
     start_time: string;
     timezone: string;
     duration: string;
@@ -44,17 +74,16 @@ export interface TwitchScheduleSegmentBody {
     title?: string;
 }
 
-export interface TwitchCategoryData {
+export interface TwitchAPICategorySearchData {
     box_art_url: string;
     name: string;
     id: string;
 }
-
-export interface TwitchCategorySearchResponseBody {
-    data: TwitchCategoryData[];
+export interface TwitchAPICategorySearchResponse {
+    data: TwitchAPICategorySearchData[];
 }
 
-export interface TwitchScheduleSegments {
+export interface TwitchAPIScheduleSegments {
     id: string;
     start_time: string;
     end_time: string;
@@ -66,9 +95,8 @@ export interface TwitchScheduleSegments {
     }
     is_recurring: boolean;
 }
-
-export interface TwitchScheduleSegmentsData {
-    segments: TwitchScheduleSegments[];
+export interface TwitchAPIScheduleSegmentData {
+    segments: TwitchAPIScheduleSegments[];
     broadcaster_id: string;
     broadcaster_name: string;
     broadcaster_login: string;
@@ -77,7 +105,6 @@ export interface TwitchScheduleSegmentsData {
         end_time: string;
     }
 }
-
-export interface TwitchScheduleSegmentReponseBody {
-    data: TwitchScheduleSegmentsData;
+export interface TwitchAPIScheduleSegmentResponse {
+    data: TwitchAPIScheduleSegmentData;
 }
