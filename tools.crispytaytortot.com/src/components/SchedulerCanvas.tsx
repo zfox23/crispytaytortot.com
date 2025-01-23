@@ -232,17 +232,17 @@ export const SchedulerCanvas = ({ sortedSchedules }: { sortedSchedules: Schedule
             const savedTextY = textY;
             if (sortedSchedules[i].startDateTimeRFC3339 && sortedSchedules[i].game && sortedSchedules[i].description) {
                 textY -= (DETAILS_TEXT_HEIGHT_PX - 13);
-                text = formatScheduleImageTimeString(new Date(sortedSchedules[i].startDateTimeRFC3339));
+                text = `${sortedSchedules[i].game} - ${sortedSchedules[i].description}`;
                 ctx.fillText(text, textX, textY);
                 textY += DETAILS_TEXT_HEIGHT_PX + 2;
-                text = `${sortedSchedules[i].game} - ${sortedSchedules[i].description}`;
+                text = formatScheduleImageTimeString(new Date(sortedSchedules[i].startDateTimeRFC3339));
                 ctx.fillText(text, textX, textY);
             } else if (sortedSchedules[i].startDateTimeRFC3339 && sortedSchedules[i].game && !sortedSchedules[i].description) {
                 textY -= (DETAILS_TEXT_HEIGHT_PX - 13);
-                text = formatScheduleImageTimeString(new Date(sortedSchedules[i].startDateTimeRFC3339));
+                text = `${sortedSchedules[i].game}`;
                 ctx.fillText(text, textX, textY);
                 textY += DETAILS_TEXT_HEIGHT_PX + 2;
-                text = `${sortedSchedules[i].game}`;
+                text = formatScheduleImageTimeString(new Date(sortedSchedules[i].startDateTimeRFC3339));
                 ctx.fillText(text, textX, textY);
             } else if (!sortedSchedules[i].startDateTimeRFC3339 && sortedSchedules[i].game && sortedSchedules[i].description) {
                 // TODO: Rethink this case. Start time will always exist.

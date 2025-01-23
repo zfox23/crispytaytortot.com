@@ -1,6 +1,9 @@
 import express, { Response } from 'express';
+import bcrypt from 'bcrypt';
 import { cachedTwitchUserAuthInfo, refreshTwitchUserAccessToken } from './twitch-auth';
-import { getChannelSubs, getStreams, getTwitchFollowerInfo } from './twitch';
+import { addToOrUpdateTwitchSchedule, getChannelSubs, getStreams, getTwitchFollowerInfo } from './twitch';
+import { SetTwitchSchedulePayload } from '../../../shared/src/types';
+import { hashedSecretPassword } from '../schedule/schedule-routes';
 const twitchRouter = express.Router();
 
 twitchRouter.get("/info", async (req, res: Response) => {
@@ -36,6 +39,29 @@ twitchRouter.get("/info", async (req, res: Response) => {
     }
 
     return res.json(retval);
+})
+
+twitchRouter.post("/schedule", async (req, res: Response) => {
+    const payload: SetTwitchSchedulePayload = req.body;
+
+    if (!(payload && payload.startDateString)) {
+        return res.status(400).send('Invalid payload');
+    }
+
+    const password = payload.password;
+    const isPasswordValid = await bcrypt.compare(password, hashedSecretPassword);
+
+    if (!isPasswordValid) {
+        console.warn(`Someone at ${req.ip} tried and failed to update the Twitch schedule.`);
+        return res.status(401).send('Unauthorized');
+    }
+
+    await refreshTwitchUserAccessToken();
+    if (!cachedTwitchUserAuthInfo) {
+        return res.status(500).send(`Server couldn't refresh Twitch user access token.`);
+    }
+
+    await addToOrUpdateTwitchSchedule(res, new Date(payload.startDateString), new Date(payload.endDateString));
 })
 
 export default twitchRouter;

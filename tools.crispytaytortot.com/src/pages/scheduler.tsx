@@ -5,11 +5,12 @@ import { CloudArrowDownIcon, CloudArrowUpIcon, CodeBracketIcon, LockClosedIcon, 
 import SEOHeader from '../components/SEOHeader';
 import { Footer } from '../../../crispytaytortot.com/src/components/Footer';
 import { Background } from '../../../crispytaytortot.com/src/components/Background';
-import { AuthorizePayload, DeleteScheduleItemPayload, GetSchedulePayload, ScheduleItem, SetSchedulePayload } from '../../../shared/src/types';
+import { AuthorizePayload, DeleteScheduleItemPayload, GetSchedulePayload, ScheduleItem, SetSchedulePayload, SetTwitchSchedulePayload } from '../../../shared/src/types';
 import { Header } from '../components/Header';
 import { SchedulerCanvas } from '../components/SchedulerCanvas';
 import { fetchGameIcon, isBrowser, SchedulerTable } from '../components/SchedulerTable';
 import { SchedulerAdder } from '../components/SchedulerAdder';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 
 const Scheduler: React.FC = () => {
@@ -19,7 +20,9 @@ const Scheduler: React.FC = () => {
     const [sortedSchedules, setSortedSchedules] = useState<ScheduleItem[]>([]);
     const [scheduleImportStartDate, setScheduleImportStartDate] = useState('');
     const [sevenDaysLaterDate, setSevenDaysLaterDate] = useState('');
-    const [operationStatus, setOperationStatus] = useState('');
+    const [crispyDBOperationStatus, setCrispyDBOperationStatus] = useState('--');
+    const [isPerformingTwitchAPIOperation, setIsPerformingTwitchAPIOperation] = useState(false);
+    const [twitchAPIOperationStatus, setTwitchAPIOperationStatus] = useState('--');
 
     const passwordInputRef = useRef<HTMLInputElement>(null);
     const importJsonTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -116,7 +119,7 @@ const Scheduler: React.FC = () => {
 
             if (Array.isArray(importedData.schedules)) {
                 setSchedules(importedData.schedules);
-                setOperationStatus(`Imported ${importedData.schedules.length} schedule items from JSON - changes not necessarily reflected in CrispyDB`)
+                setCrispyDBOperationStatus(`Imported ${importedData.schedules.length} schedule item${importedData.schedules.length === 1 ? '' : 's'} from JSON - changes not necessarily reflected in CrispyDB`)
             } else {
                 setSchedules([]); // Reset schedules if invalid or not provided
             }
@@ -134,7 +137,7 @@ const Scheduler: React.FC = () => {
 
         const password = passwordInputRef.current.value;
         if (!password) {
-            setOperationStatus('Password is required.');
+            setCrispyDBOperationStatus('Password is required.');
             return;
         }
 
@@ -177,7 +180,7 @@ const Scheduler: React.FC = () => {
         event.preventDefault();
 
         if (!isAuthorized) {
-            setOperationStatus('Authorization is required.');
+            setCrispyDBOperationStatus('Authorization is required.');
             return;
         }
 
@@ -185,7 +188,7 @@ const Scheduler: React.FC = () => {
 
         const password = passwordInputRef.current.value;
         if (!password) {
-            setOperationStatus('Password is required.');
+            setCrispyDBOperationStatus('Password is required.');
             return;
         }
 
@@ -206,15 +209,15 @@ const Scheduler: React.FC = () => {
             if (response.ok) {
                 const result = await response.text();
                 console.log('Schedule updated successfully:', result);
-                setOperationStatus(`CrispyDB schedule updated with ${payload.schedules.length} items!`);
+                setCrispyDBOperationStatus(`CrispyDB schedule updated with ${payload.schedules.length} items!`);
             } else {
                 const errorData = await response.text();
                 console.error('Failed to update schedule:', errorData);
-                setOperationStatus('Failed to update CrispyDB schedule. Please try again.');
+                setCrispyDBOperationStatus('Failed to update CrispyDB schedule. Please try again.');
             }
         } catch (error) {
             console.error('Error during fetch operation:', error);
-            setOperationStatus('An error occurred while updating the CrispyDB schedule.');
+            setCrispyDBOperationStatus('An error occurred while updating the CrispyDB schedule.');
         }
     };
 
@@ -222,7 +225,7 @@ const Scheduler: React.FC = () => {
         event.preventDefault();
 
         if (!isAuthorized) {
-            setOperationStatus('Authorization is required.');
+            setCrispyDBOperationStatus('Authorization is required.');
             return;
         }
 
@@ -230,7 +233,7 @@ const Scheduler: React.FC = () => {
 
         const password = passwordInputRef.current.value;
         if (!password) {
-            setOperationStatus('Password is required.');
+            setCrispyDBOperationStatus('Password is required.');
             return;
         }
 
@@ -273,16 +276,97 @@ const Scheduler: React.FC = () => {
                 setSchedules(importedScheduleItems);
 
                 console.log('Schedule imported successfully! Resulting \`ScheduleItems\`:', importedScheduleItems);
-                setOperationStatus(`${importedScheduleItems.length} schedule items imported from CrispyDB!`);
+                setCrispyDBOperationStatus(`${importedScheduleItems.length} schedule item${importedScheduleItems.length === 1 ? '' : 's'} imported from CrispyDB!`);
             } else {
                 const errorData = await response.text();
                 console.error('Failed to import schedule:', errorData);
-                setOperationStatus('Failed to import schedule from CrispyDB. Please try again.');
+                setCrispyDBOperationStatus('Failed to import schedule from CrispyDB. Please try again.');
             }
         } catch (error) {
             console.error('Error during fetch operation:', error);
-            setOperationStatus('An error occurred while importing the schedule from CrispyDB.');
+            setCrispyDBOperationStatus('An error occurred while importing the schedule from CrispyDB.');
         }
+    }
+
+    const setTwitchSchedule = async (event) => {
+        event.preventDefault();
+
+        setIsPerformingTwitchAPIOperation(true);
+
+        if (!isAuthorized) {
+            setTwitchAPIOperationStatus('Authorization is required.');
+            setIsPerformingTwitchAPIOperation(false);
+            return;
+        }
+
+        if (!passwordInputRef.current) {
+            setIsPerformingTwitchAPIOperation(false);
+            return;
+        }
+
+        const password = passwordInputRef.current.value;
+        if (!password) {
+            setTwitchAPIOperationStatus('Password is required.');
+            setIsPerformingTwitchAPIOperation(false);
+            return;
+        }
+
+        // Determine startDateString and endDateString based on the earliest and latest ScheduleItem
+        let minStartDate: Date | undefined;
+        let maxEndDate: Date | undefined;
+
+        schedules.forEach(item => {
+            const startDateTime = new Date(item.startDateTimeRFC3339);
+            const endDateTime = new Date(item.endDateTimeRFC3339);
+
+            if (!minStartDate || startDateTime < minStartDate) {
+                minStartDate = startDateTime;
+            }
+
+            if (!maxEndDate || endDateTime > maxEndDate) {
+                maxEndDate = endDateTime;
+            }
+        });
+
+        if (!minStartDate || !maxEndDate) {
+            setTwitchAPIOperationStatus('No valid schedule items found.');
+            setIsPerformingTwitchAPIOperation(false);
+            return;
+        }
+
+        const startDateString = minStartDate.toISOString();
+        const endDateString = maxEndDate.toISOString();
+
+        const payload: SetTwitchSchedulePayload = {
+            password,
+            startDateString,
+            endDateString,
+        };
+
+        try {
+            const response = await fetch('/api/v2/twitch/schedule', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (response.ok) {
+                const result = await response.text();
+                console.log('Twitch schedule updated successfully:', result);
+                setTwitchAPIOperationStatus(`Twitch schedule updated!`);
+            } else {
+                const errorData = await response.text();
+                console.error('Failed to update Twitch schedule:', errorData);
+                setTwitchAPIOperationStatus(errorData);
+            }
+        } catch (error) {
+            console.error('Error during fetch operation:', error);
+            setTwitchAPIOperationStatus(error);
+        }
+
+        setIsPerformingTwitchAPIOperation(false);
     }
 
     return (
@@ -298,7 +382,7 @@ const Scheduler: React.FC = () => {
                     <SchedulerCanvas sortedSchedules={sortedSchedules} />
                 </div>
 
-                <SchedulerTable sortedSchedules={sortedSchedules} setSchedules={setSchedules} passwordInputRef={passwordInputRef} isAuthorized={isAuthorized} setOperationStatus={setOperationStatus} />
+                <SchedulerTable sortedSchedules={sortedSchedules} setSchedules={setSchedules} passwordInputRef={passwordInputRef} isAuthorized={isAuthorized} setOperationStatus={setCrispyDBOperationStatus} />
 
                 <div className='flex flex-row flex-wrap gap-x-8 gap-y-8 w-full md:justify-center grow'>
                     <form className='flex flex-col w-full max-w-96 grow-0 shrink'
@@ -337,18 +421,20 @@ const Scheduler: React.FC = () => {
                             </button>
                         </div>
                     </form>
+
+
                     <div className='flex flex-col w-full max-w-96 grow-0 shrink'>
                         <h2 className='font-semibold text-lg mb-0.5'>CrispyDB Operations</h2>
-                        <div className='flex gap-2 mb-1'>
+                        <p className='italic font-mono mb-2'>Status: {crispyDBOperationStatus}</p>
+                        <div className='flex flex-col gap-4'>
                             <div className='w-full flex flex-col gap-2'>
-                                <p className='text-center text-xs italic my-1 py-0.5'>Does not yet affect Twitch schedule</p>
                                 <button
                                     onClick={updateCrispyDBSchedule}
                                     disabled={!isAuthorized}
                                     className="btn-primary"
                                 >
                                     {isAuthorized ? <CloudArrowUpIcon className='w-5 h-5' /> : <LockClosedIcon className='w-5 h-5' />}
-                                    <span>Update</span>
+                                    <span>Update CrispyDB from Table</span>
                                 </button>
                             </div>
                             <div className='w-full flex flex-col gap-2'>
@@ -369,12 +455,30 @@ const Scheduler: React.FC = () => {
                                     className="btn-secondary"
                                 >
                                     {isAuthorized ? <CloudArrowDownIcon className='w-5 h-5' /> : <LockClosedIcon className='w-5 h-5' />}
-                                    <span>Import</span>
+                                    <span>Import {scheduleImportStartDate} - {sevenDaysLaterDate} from CrispyDB</span>
                                 </button>
                             </div>
                         </div>
-                        <p className='text-center italic font-mono'>{operationStatus}</p>
                     </div>
+
+
+                    <div className='flex flex-col w-full max-w-96 grow-0 shrink'>
+                        <h2 className='font-semibold text-lg mb-0.5'>Twitch API Operations</h2>
+                        <p className='italic font-mono mb-2'>Status: {twitchAPIOperationStatus}</p>
+                        <div className='flex flex-col gap-4'>
+                            <div className='w-full flex flex-col gap-2'>
+                                <button
+                                    onClick={setTwitchSchedule}
+                                    disabled={!isAuthorized || isPerformingTwitchAPIOperation}
+                                    className="btn-primary"
+                                >
+                                    {isPerformingTwitchAPIOperation ? <LoadingSpinner className='w-5 h-5' /> : isAuthorized ? <ExclamationTriangleIcon className='w-5 h-5' /> : <LockClosedIcon className='w-5 h-5' />}
+                                    <span>Update Twitch Schedule from Table</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
 
                     <div className='flex flex-col w-full max-w-96 grow'>
                         <h2 className='font-semibold text-lg !mb-0.5'>Schedule JSON</h2>

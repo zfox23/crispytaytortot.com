@@ -2,8 +2,8 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import { AuthorizePayload, DeleteScheduleItemPayload, GetSchedulePayload, SetSchedulePayload } from '../../../shared/src/types';
-import { db } from '../database/db';
-import { updateTwitchSchedule } from '../twitch/twitch';
+import { crispyDB } from '../database/db';
+import { updateTwitchCategoryIDCache } from '../twitch/twitch';
 dotenv.config();
 const scheduleRouter = express.Router();
 
@@ -15,7 +15,7 @@ if (!SCHEDULE_SECRET_PASSWORD) {
 
 // In production, we should this hashed value somewhere secure...
 const saltRounds = 10;
-const hashedSecretPassword = bcrypt.hashSync(SCHEDULE_SECRET_PASSWORD, saltRounds);
+export const hashedSecretPassword = bcrypt.hashSync(SCHEDULE_SECRET_PASSWORD, saltRounds);
 
 
 scheduleRouter.post('/authorize', async (req, res) => {
@@ -65,7 +65,7 @@ scheduleRouter.post('/get', async (req, res) => {
         // Set the time to 23:59:59.999
         endDate.setHours(23, 59, 59, 999);
 
-        const stmt = db.prepare(`SELECT * FROM schedules WHERE date(startDateTimeRFC3339) BETWEEN date(?) AND date(?) ORDER BY startDateTimeRFC3339`);
+        const stmt = crispyDB.prepare(`SELECT * FROM schedules WHERE date(startDateTimeRFC3339) BETWEEN date(?) AND date(?) ORDER BY startDateTimeRFC3339`);
         const rows = await new Promise<any[]>((resolve, reject) => {
             stmt.all(startDate.toISOString(), endDate.toISOString(), (err: Error | null, rows: any[]) => {
                 if (err) {
@@ -100,21 +100,8 @@ scheduleRouter.post('/set', async (req, res) => {
     }
 
     try {
-        let minDate: Date | null = null;
-        let maxDate: Date | null = null;
-
         for (const schedule of payload.schedules) {
-            const currentStartDate = new Date(schedule.startDateTimeRFC3339);
-
-            if (!minDate || currentStartDate < minDate) {
-                minDate = currentStartDate;
-            }
-
-            if (!maxDate || currentStartDate > maxDate) {
-                maxDate = currentStartDate;
-            }
-
-            const stmt = db.prepare(`REPLACE INTO schedules (id, startDateTimeRFC3339, endDateTimeRFC3339, ianaTimeZoneName, game, description, iconUrl) VALUES (?, ?, ?, ?, ?, ?, ?)`);
+            const stmt = crispyDB.prepare(`REPLACE INTO schedules (id, startDateTimeRFC3339, endDateTimeRFC3339, ianaTimeZoneName, game, description, iconUrl) VALUES (?, ?, ?, ?, ?, ?, ?)`);
 
             await new Promise<void>((resolve, reject) => {
                 stmt.run(
@@ -137,11 +124,9 @@ scheduleRouter.post('/set', async (req, res) => {
             });
         }
 
-        // if (minDate && maxDate) {
-        //     await updateTwitchSchedule(db, minDate, maxDate);
-        // }
+        updateTwitchCategoryIDCache();
 
-        res.status(200).send('Schedules updated successfully');
+        res.status(200).send('CrispyDB Schedules updated successfully');
     } catch (error) {
         console.error(error);
         res.status(500).send('Error updating schedules');
@@ -164,7 +149,7 @@ scheduleRouter.post('/delete', async (req, res) => {
     }
 
     try {
-        const stmt = db.prepare(`DELETE FROM schedules WHERE id = ?`);
+        const stmt = crispyDB.prepare(`DELETE FROM schedules WHERE id = ?`);
 
         await new Promise<void>((resolve, reject) => {
             stmt.run(payload.id, (err: Error | null) => {

@@ -2,12 +2,12 @@ import path from "path";
 import { Database } from "sqlite3";
 
 const sqlite3 = require('sqlite3').verbose();
-export let db: Database;
+export let crispyDB: Database;
 
 export const openDatabase = () => {
     return new Promise<void>((resolve, reject) => {
         const dbPath = path.join(__dirname, "..", "..", "db", "crispyDB.sqlite");
-        db = new sqlite3.Database(dbPath, (err: Error) => {
+        crispyDB = new sqlite3.Database(dbPath, (err: Error) => {
             if (err) {
                 console.error(err.message);
                 reject(err);
@@ -19,7 +19,7 @@ export const openDatabase = () => {
     });
 }
 
-export const initDatabase = () => {
+export const createSchedulesTable = () => {
     return new Promise<void>((resolve, reject) => {
         // Create the table if it doesn't exist
         const createTableSql = `
@@ -34,11 +34,32 @@ export const initDatabase = () => {
                 twitchScheduleBroadcastID TEXT
             );`;
 
-        db.run(createTableSql, async (err) => {
+        crispyDB.run(createTableSql, async (err) => {
             if (err) {
                 console.error(err.message);
                 return reject(err);
             }
+            return resolve();
+        });
+    });
+}
+
+export const createTwitchCategoryIDCache = () => {
+    return new Promise<void>((resolve, reject) => {
+        // Create the table if it doesn't exist
+        const createTableSql = `
+            CREATE TABLE IF NOT EXISTS twitchCategoryIDCache (
+                game TEXT NOT NULL PRIMARY KEY,
+                twitchCategoryName TEXT,
+                twitchCategoryID TEXT
+            );`;
+
+        crispyDB.run(createTableSql, async (err) => {
+            if (err) {
+                console.error(err.message);
+                return reject(err);
+            }
+            return resolve();
         });
     });
 }

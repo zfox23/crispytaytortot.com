@@ -158,7 +158,7 @@ export const SchedulerTable = ({ sortedSchedules, setSchedules, passwordInputRef
                     <th className={`px-1 py-0.5 md:px-2 md:py-1 ${editingScheduleId ? 'w-36 md:w-48 text-xs md:text-base' : 'w-24 md:w-32'}`}>End</th>
                     <th className="px-1 py-1 md:px-2 md:py-2 w-10 md:w-16">Icon</th>
                     <th className="px-1 py-0.5 md:px-2 md:py-1">Game</th>
-                    <th className="px-1 py-0.5 md:px-2 md:py-1">Description</th>
+                    <th className="px-1 py-0.5 md:px-2 md:py-1">Broadcast Title</th>
                     <th className="px-1 py-0.5 md:px-2 md:py-1 w-12 md:w-16"></th>
                 </tr>
             </thead>

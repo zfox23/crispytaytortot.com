@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { fetchGameIcon } from './SchedulerTable';
 import { PlusCircleIcon } from '@heroicons/react/24/outline';
 import { ScheduleItem } from '../../../shared/src/types';
-import { computeDurationInHours, SCHEDULED_STREAM_LIMIT_HOURS } from '../../../shared/src/shared';
+import { computeDurationInMinutes, SCHEDULED_STREAM_LIMIT_MINUTES, validateEndTime } from '../../../shared/src/shared';
 
 export const SchedulerAdder = ({ schedules, setSchedules }: { schedules: ScheduleItem[], setSchedules: (i: ScheduleItem[]) => void }) => {
     const [startDateTimeString, setStartDateTimeString] = useState('');
@@ -12,22 +12,20 @@ export const SchedulerAdder = ({ schedules, setSchedules }: { schedules: Schedul
 
     const endDateTimeInputRef = useRef<HTMLInputElement>(null);
 
-    const checkStreamDuration = () => {
+    const clientValidateEndTime = () => {
         if (!(endDateTimeInputRef && endDateTimeInputRef.current)) return;
 
-        if (computeDurationInHours(startDateTimeString, endDateTimeString) > SCHEDULED_STREAM_LIMIT_HOURS) {
-            endDateTimeInputRef.current.setCustomValidity(`Maximum stream duration is ${SCHEDULED_STREAM_LIMIT_HOURS} hours.`);
-        } else {
-            endDateTimeInputRef.current.setCustomValidity("");
-        }
+        endDateTimeInputRef.current.setCustomValidity(
+            validateEndTime(startDateTimeString, endDateTimeString)
+        )
     }
 
-    useEffect(checkStreamDuration, [endDateTimeString]);
+    useEffect(clientValidateEndTime, [startDateTimeString, endDateTimeString]);
 
     const addSchedule = async (event: React.FormEvent) => {
         event.preventDefault();
 
-        checkStreamDuration();
+        clientValidateEndTime();
 
         const iconUrl = await fetchGameIcon(game);
         if (startDateTimeString && endDateTimeString && game) {
@@ -78,7 +76,7 @@ export const SchedulerAdder = ({ schedules, setSchedules }: { schedules: Schedul
                         className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-lg bg-gray-100 dark:bg-gray-800 text-black dark:text-white"
                     />
                 </div>
-                <p className='italic text-sm'>Time Zone: {Intl.DateTimeFormat().resolvedOptions().timeZone}</p>
+                <p className='italic text-sm opacity-80 hover:opacity-100 transition-all duration-75'>Your <a target='_blank' className='underline decoration-dotted' href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">IANA Time Zone</a>: <span className='font-semibold'>{Intl.DateTimeFormat().resolvedOptions().timeZone}</span></p>
             </div>
             <input
                 type="text"
@@ -92,7 +90,7 @@ export const SchedulerAdder = ({ schedules, setSchedules }: { schedules: Schedul
                 type="text"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="(optional) Description"
+                placeholder="(optional) Broadcast Title"
                 className="block w-full px-1.5 py-1 md:px-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-lg bg-gray-100 dark:bg-gray-800 text-black dark:text-white"
             />
             <button

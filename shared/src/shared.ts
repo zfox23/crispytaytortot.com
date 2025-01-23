@@ -1,9 +1,9 @@
-export const SCHEDULED_STREAM_LIMIT_HOURS = 23;
+export const SCHEDULED_STREAM_LIMIT_MINUTES = 23 * 60;
 
-export const computeDurationInHours = (startDateTimeRFC3339: string, endDateTimeRFC3339: string): number => {
-    const startDate = new Date(startDateTimeRFC3339);
-    const endDate = new Date(endDateTimeRFC3339);
-    return (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60);
+export const computeDurationInMinutes = (startDateTimeString: string, endDateTimeString: string): number => {
+    const startDate = new Date(startDateTimeString);
+    const endDate = new Date(endDateTimeString);
+    return Math.round(endDate.getTime() - startDate.getTime()) / (1000 * 60);
 };
 
 export const rfc3339ToLocalYYYYMMDDTHHMM = (rfc3339String: string, ianaTimeZoneName: string) => {
@@ -19,3 +19,12 @@ export const rfc3339ToLocalYYYYMMDDTHHMM = (rfc3339String: string, ianaTimeZoneN
     }).replace(/\/|\s/g, 'T').replace(',', '');
 }
 
+export const validateEndTime = (startDateTimeString: string, endDateTimeString: string) => {
+    if (computeDurationInMinutes(startDateTimeString, endDateTimeString) > SCHEDULED_STREAM_LIMIT_MINUTES) {
+        return `Maximum stream duration is ${Math.round(SCHEDULED_STREAM_LIMIT_MINUTES / 60)} hours.`;
+    } else if (new Date(endDateTimeString) < new Date(startDateTimeString)) {
+        return "End date must be after start date";
+    } else {
+        return "";
+    }
+}

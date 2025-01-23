@@ -7,7 +7,7 @@ import twitchAuthRouter from './twitch/twitch-auth-routes';
 import scheduleRouter from './schedule/schedule-routes';
 import { cacheAllOwnedApps } from './steam/steam';
 import { configDotenv } from 'dotenv';
-import { initDatabase, openDatabase } from './database/db';
+import { createSchedulesTable, createTwitchCategoryIDCache, openDatabase } from './database/db';
 
 configDotenv();
 
@@ -20,7 +20,8 @@ app.use(cookieParser("some super secret thing, please do not copy this"));
 cacheAllOwnedApps();
 async function setupDB() {
     await openDatabase();
-    await initDatabase();
+    await createSchedulesTable();
+    await createTwitchCategoryIDCache();
 }
 
 setupDB();
