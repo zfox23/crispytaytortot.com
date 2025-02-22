@@ -203,7 +203,7 @@ const IndexPage = ({ data }) => {
                         :
                         <iframe
                             className={`w-full h-full md:rounded-md`}
-                            src="https://www.youtube.com/embed/swqkp5psjkk?si=Kxfya6tlkJBlUO_m"
+                            src="https://www.youtube.com/embed/HnXKtKPfMNo"
                             height="100%"
                             width="100%"
                             allowFullScreen={true}>
